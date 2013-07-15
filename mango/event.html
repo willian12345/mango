@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>mango test demo</title>
+    <style type="text/css">
+
+    </style>
+    <link rel="stylesheet" type="text/css" href="event.css">
+  </head>
+  <body>
+        <script type="text/javascript" src="arbiter.js"></script>
+        <script type="text/javascript" src="mango.js"></script>
+        <div class="hel">11</div>
+        <div class="second">hi</div>
+        <div id="showbox">
+            <div class="a">a</div>
+            <div class="b">b</div>
+            <div class="c">c</div>
+            <div class="d">
+                <div class="c">inner c</div>
+            </div>
+        </div>
+        <select id="sel">
+            <option>a</option>
+            <option>b</option>
+            <option>c</option>
+        </select>
+        <form method="post", action="#">
+            <button type="submit" id="test"></button>
+        </form>
+        <div class="box">
+            
+        </div>
+        <script type="text/javascript">
+        console.time('tt');
+        var el = document.querySelector('#showbox')
+        // for(var i=0;i<50; i++){
+        //     $(el).on('click/helloworld', function(e){
+        //         console.log('helloworld')
+        //     });    
+        // }
+        $('.b').on('click', function(e){
+            console.log('i am b');
+        });
+         $('.b').on('click/b', function(e){
+            console.log('i am b/b');
+        });
+        $('.b').on('click/c', function(e){
+            console.log('i am b/c');
+            e.stopPropagation();
+        }); 
+        $('.b').off('click/b');
+        $(el).on('click/helloworld', '.c', function(e){
+                console.log('i am showbox', e, this);
+        });   
+        
+        $('select').on('change', function (e) {
+            console.log(this, e)
+        });
+        
+        console.timeEnd('tt');
+        </script>
+  </body>
+</html> 
