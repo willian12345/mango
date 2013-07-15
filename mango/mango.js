@@ -69,14 +69,14 @@
     Mango = function (selector, context) {
         context = context || document;
         if(!selector) return null;
-        if(selector.context){// mango 直接返回
+        if(selector.context){// mango
             return selector;
         }else if(selector.nodeType){// dom
             this[0] = selector;
             this.length = 1;
             this.context = selector;
             return this;
-        }else if(_$.isString(selector)){
+        }else if(_$.isString(selector)){// true selector
             this.length = 0;
             var matched = [];
             selector.split(',').forEach(function(v,i){
@@ -318,6 +318,7 @@
                         return ;
                     }
                     if(selector){
+                        //!!(container.compareDocumentPosition(maybe) & 16)
                         if(el.contains(_el)){ // check delegate element
                             _cb.call(_el, e);
                         }
@@ -345,6 +346,28 @@
                     Events[_id][eventName].handles.length = 0;
                 }
             });
+        }
+        ,hover: function (hoverIn, hoverOut) {
+            if(_$.isFunction(hoverIn)){
+                Mango.each(this, function(el){
+                    var $el = $(el)
+                    $el.on('mouseover', function(e){
+                        // mouseEnter
+                        if(el === e.srcElement && !el.contains(e.relatedTarget)){
+                            hoverIn.call(el, e)
+                        }
+                    });
+                    if(_$.isFunction(hoverOut)){
+                        $el.on('mouseout', function(e){
+                            // mouseLeave
+                            if(el === e.srcElement && !el.contains(e.relatedTarget)){
+                                hoverOut.call(el, e);
+                            }
+                        });
+                    }
+                });
+            }
+            return this;
         }
         ,trigger: function (eventName) {
             var privateEvent = null, eventNamespace;
@@ -382,13 +405,10 @@
             if(v !== undefined){
                 var strArr = [];
                 // Uppercase the letter after the '-'
-                p.split('-').forEach(function(str){
-                    if(str.length)
-                        strArr.push(str.substr(0,1).toUpperCase() + str.substr(1));
+                p = p.replace(/-(.)/g, function($1,$2) {
+                    return $2.toUpperCase(); 
                 });
-                p = strArr.join('');
                 // lowercase the first letter
-                p = p.substr(0,1).toLowerCase() + p.substr(1);
                 if(!/em|px|%/.test(v)){
                     v += 'px';
                 }

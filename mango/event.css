@@ -6,4 +6,9 @@
     margin: 20px;
     background: green;
 }
+.innerBox{
+    width: 40px;
+    height: 40px;
+    background: yellow;
+}
    
