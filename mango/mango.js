@@ -86,7 +86,6 @@
             return this;
         }else if(_$.isString(selector)){// true selector
             this.length = 0;
-            var matched = [];
             var _html = selector.match(rquickExpr);
             var _sHtml, _dom;
             if( _html ){
@@ -110,28 +109,10 @@
                     _dom = null;
                 }
             } else {
-                selector.split(',').forEach(function(v,i){
-                    var a = v.substr(0,1);
-                    if(a === '#'){
-                        matched.push(context.querySelector(v))
-                    }else if(a === '.'){
-                        Mango.each(context.querySelectorAll(v),function(ele, i){
-                            this[this.length] = ele;
-                            this.length++;
-                            // console.log(this, ele, i)
-                        }.bind(this));
-                    }else{
-                        Mango.each(context.querySelectorAll(v),function(ele, i){
-                            this[this.length] = ele;
-                            this.length++;
-                            // console.log(this, ele, i)
-                        }.bind(this));
-                    }
+                Mango.each(context.querySelectorAll(selector),function(ele, i){
+                    this[this.length] = ele;
+                    this.length++;
                 }.bind(this));
-                if(matched.length === 1){
-                    this[0] = matched[0];
-                    this.length = 1;
-                }
             }
             this.context = context;
             return this;
