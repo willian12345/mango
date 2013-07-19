@@ -4,7 +4,8 @@
  * Date: 2013-06-15
  * github: https://github.com/willian12345/mango
  */
-;(function(window){
+;~function(window){
+    'use strict';
     var Mango, mango, _mango = {}, Events = {},EventsGuid=0, EventTrigger, _$, _extend, domReady = false, domReadyCallbacks
     // check for HTML strings
     ,rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*)$/
@@ -147,7 +148,10 @@
 
     Mango.each = function (object, callback) {
         for(var i=0,j=object.length; i<j; i++){
-            callback.call(this, object[i], i);
+            var result = callback.call(this, object[i], i);
+            if(result === false){
+                break;
+            }
         }
     };
     Mango.prev = function (node) {
@@ -247,7 +251,7 @@
             return mango(results);
         }
         ,parents: function (selector) {
-            var matched = [], get;
+            var matched = [], get, matchedFunc;
             if(selector){
                 matchedFunc = function (node) {
                     if(node.webkitMatchesSelector(selector)){
@@ -275,8 +279,9 @@
         }
         ,each: function (callback) {
             Mango.each(this, function (v, i) {
-                callback.call(v, v, i);
+                return callback.call(v, v, i);
             });
+            return this;
         }
         ,prop: function (name, value) {
             if(!this[0]){
@@ -405,7 +410,7 @@
                     }
                     if(selector){
                         //!!(container.compareDocumentPosition(maybe) & 16)
-                        if(el.contains(_el)){ // check delegate element
+                        if(_el.webkitMatchesSelector(selector)){ // check delegate element
                             _cb.call(_el, e);
                         }
                     }else{
@@ -572,7 +577,7 @@
     });
     // extend width,height,innerWidth, outerWidth, innerHeight, outerHeight
     ['Width', 'Height'].forEach(function(v) {
-        _v = v.toLowerCase();
+        var _v = v.toLowerCase();
         Mango.prototype[_v] = function (value) {
             var re;
             if(value===undefined){
@@ -621,13 +626,30 @@
         trigger: function (element, eventName, _privateEvent){
             var options = _extend(EventTrigger.defaultOptions, arguments[2] || {});
             var oEvent, eventType = null;
+            var eventId;
 
             for (var name in EventTrigger.eventMatchers){
                 if (EventTrigger.eventMatchers[name].test(eventName)) { eventType = name; break; }
             }
 
-            if (!eventType)
-                throw new SyntaxError('只有 HTMLEvents and MouseEvents 事件类型被支持');
+            if (!eventType){
+                // custom event bubbling
+                $(element).parents().each(function(){
+                    var _id = this['_mangoeventid'];
+                    if(_id){
+                        Events[_id][eventName].handles.forEach(function(eventCb){
+                            eventCb.call(this, {srcElement: element});
+                        }.bind(this));
+                    }
+                });
+                eventId = element['_mangoeventid'];
+                if(eventId){
+                    Events[eventId][eventName].handles.forEach(function(eventCb){
+                        eventCb.call(element, {srcElement: element});
+                    });
+                }
+                return ;
+            }
 
             if (document.createEvent){
                 oEvent = document.createEvent(eventType);
@@ -756,4 +778,4 @@
         head.appendChild(script);
     }
     window.mango = window.$ = mango;    
-})(this);
+}(this);
