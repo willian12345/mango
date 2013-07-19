@@ -53,7 +53,9 @@
         $('select').on('change', function (e) {
             console.log(this, e)
         });
-        
+        $(function(){
+            console.log(this, arguments)
+        })
         console.timeEnd('tt');
         </script>
   </body>

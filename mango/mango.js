@@ -5,7 +5,7 @@
  * github: https://github.com/willian12345/mango
  */
 ;(function(window){
-    var Mango, mango, _mango = {}, Events = {},EventsGuid=0, EventTrigger, _$, _extend
+    var Mango, mango, _mango = {}, Events = {},EventsGuid=0, EventTrigger, _$, _extend, domReady = false, domReadyCallbacks
     // check for HTML strings
     ,rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*)$/
     // Match a standalone tag
@@ -124,11 +124,27 @@
             this.context = context;
             return this;
         }else if(_$.isFunction(selector)){
-            window.document.addEventListener('DOMContentLoaded', function () {
-                selector();
-            }, false)
+            if(domReady){
+                selector.call(window.document, this);
+            }else{
+                if(!domReadyCallbacks){
+                    domReadyCallbacks = [];
+                }
+                domReadyCallbacks.push(selector);
+            }
         }
     };
+    
+    window.document.addEventListener('DOMContentLoaded', function () {
+        domReady = true;
+        var cb;
+        if(domReadyCallbacks && domReadyCallbacks.length){
+            while(cb = domReadyCallbacks.shift()){
+                cb.call(window.document, this);
+            }
+        }
+    }, false);
+
     Mango.each = function (object, callback) {
         for(var i=0,j=object.length; i<j; i++){
             callback.call(this, object[i], i);
@@ -501,12 +517,20 @@
     ['before', 'after'].forEach(function(v){
         var add;
         if(v === 'before'){
-            add = function (target, el) {
-                target.parentElement.insertBefore(el.cloneNode(true), target);
+            add = function (target, el, selector) {
+                if(rquickExpr.test(selector)){// pure html string
+                    target.insertAdjacentHTML('beforeBegin', selector);// call new api
+                }else{
+                    target.parentElement.insertBefore(el.cloneNode(true), target);    
+                }
             }
         }else{
-            add = function (target, el) {
-                target.parentElement.insertBefore(el.cloneNode(true), target.nextElementSibling);
+            add = function (target, el, selector) {
+                if(rquickExpr.test(selector)){// pure html string
+                    target.insertAdjacentHTML('afterEnd', selector);// call new api
+                }else{
+                    target.parentElement.insertBefore(el.cloneNode(true), target.nextElementSibling);
+                }
             }
         }
         
@@ -514,7 +538,7 @@
             var self = this, $selector = $(selector);
             Mango.each(this, function(target){
                 Mango.each($selector, function (el) {
-                   add(target, el);
+                   add(target, el, selector);
                 });
             });
             return this;
@@ -524,19 +548,19 @@
     ['append','prepend'].forEach(function(v){
         var add;
         if(v === 'append'){
-            add = function (parent, child) {
-                parent.appendChild(child.cloneNode(true));
+            add = function (parent, child, selector) {
+                parent.appendChild(child.cloneNode(true));    
             }
         } else {
-            add = function (parent, child) {
+            add = function (parent, child, selector) {
                 parent.insertBefore(child.cloneNode(true), parent.firstChild);
             }
         }
         Mango.prototype[v + 'To'] = function (selector) {
             var self = this;
             Mango.each($(selector), function(target){
-                Mango.each(self, function (el) {
-                    add(target, el);
+                Mango.each(self, function (el) {console.log(selector,11)
+                    add(target, el, selector);
                 });
             });
             return this;
