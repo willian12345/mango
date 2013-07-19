@@ -140,7 +140,7 @@
         var cb;
         if(domReadyCallbacks && domReadyCallbacks.length){
             while(cb = domReadyCallbacks.shift()){
-                cb.call(window.document, this);
+                cb.call(window.document, mango);
             }
         }
     }, false);
