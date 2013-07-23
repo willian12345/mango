@@ -178,21 +178,6 @@
             });
             return mango(results);
         }
-        ,addClass: function (className) {
-            Mango.each(this, function (node) {
-                node && node.classList.add(className);
-            });
-            return this;
-        }
-        ,removeClass: function (className) {
-            Mango.each(this, function (node) {
-                node && node.classList.remove(className);
-            });
-            return this;  
-        }
-        ,hasClass: function (className) {
-            return this[0].classList.contains(className);
-        }
         ,html: function (str) {
             var r;
             if(str){
@@ -518,6 +503,20 @@
             return this;
         }
     };
+    // extend addClass,removeClass,toggleClass,hasClass
+    ~function(){
+        var classList = {addClass: 'add', removeClass: 'remove', toggleClass: 'toggle', hasClass: 'contains'};
+        for(var k in classList){
+            ~function(_k){
+                Mango.prototype[_k] = function (className) {
+                    Mango.each(this, function (node) {
+                        node && node.classList[classList[_k]](className);
+                    });
+                    return this;
+                }
+            }(k);
+        }
+    }();
     // extend before,after
     ['before', 'after'].forEach(function(v){
         var add;
