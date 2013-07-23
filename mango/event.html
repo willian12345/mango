@@ -51,10 +51,13 @@
         });   
         
         $('select').on('change', function (e) {
-            console.log(this, e)
+            console.log(this, e);
         });
         $(function(){
             console.log(this, arguments)
+            $('.box').on('touchstart', function(e){
+                console.log(e);
+            });
         })
         console.timeEnd('tt');
         </script>

@@ -662,8 +662,9 @@
             return element;
         }
         ,eventMatchers: {
-            'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
-            'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/
+            'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/
+            ,'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/
+            ,'TouchEvents': /^(?:touch(?:start|end|move))$/
         }
         ,defaultOptions: {
             pointerX: 0,
