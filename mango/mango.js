@@ -642,12 +642,7 @@
                         }.bind(this));
                     }
                 });
-                eventId = element['_mangoeventid'];
-                if(eventId){
-                    Events[eventId][eventName].handles.forEach(function(eventCb){
-                        eventCb.call(element, {srcElement: element});
-                    });
-                }
+                /// todo optimize
                 return ;
             }
 
@@ -684,7 +679,7 @@
         }
     }
 
-    // main function for
+    // main function for interface
     mango = (function(){
         return function (selector, context) {
             return new Mango(selector, context);
