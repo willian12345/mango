@@ -178,6 +178,12 @@
             });
             return mango(results);
         }
+        ,remove: function () {
+            Mango.each(this, function (node) {
+                node.parentNode.removeChild(node);
+            });
+            return this;
+        }
         ,html: function (str) {
             var r;
             if(str){
@@ -553,20 +559,41 @@
         var add;
         if(v === 'append'){
             add = function (parent, child, selector) {
-                parent.appendChild(child.cloneNode(true));    
+                var c,remove;
+                if(selector.length>1){
+                    c = child.cloneNode(true);
+                    remove = true;
+                }else{
+                    c = child;
+                }
+                parent.appendChild(c);
+                if(remove){///
+                    child.parentNode && child.parentNode.removeChild(child);
+                }
             }
         } else {
             add = function (parent, child, selector) {
-                parent.insertBefore(child.cloneNode(true), parent.firstChild);
+                var c,remove;
+                if(selector.length>1){
+                    c = child.cloneNode(true);
+                    remove = true;
+                }else{
+                    c = child;
+                }
+                parent.insertBefore(c, parent.firstChild);
+                if(remove){///
+                    child.parentNode && child.parentNode.removeChild(child);
+                }
             }
         }
         Mango.prototype[v + 'To'] = function (selector) {
             var self = this;
             Mango.each($(selector), function(target){
-                Mango.each(self, function (el) {console.log(selector,11)
+                Mango.each(self, function (el) {
                     add(target, el, selector);
                 });
             });
+
             return this;
         }
         Mango.prototype[v] = function (child) {
@@ -729,16 +756,18 @@
         request.onreadystatechange = function() {
             // Is send success or get the page success
             if (request.readyState==4 && request.status==200) {
-                if(/json/g.test(request.getResponseHeader("Content-Type"))){
+                if(/json/g.test(request.getResponseHeader("Content-Type"))){//json
                     if(mango.isFunction(success)){
                         success(eval('('+request.responseText+')'));
                     }
+                }else{//html,text
+                    success(request.responseText);
                 }
             } 
         }
         if(data !== undefined){
             if(type === 'GET'){
-                url += '?' + $.param(data);    
+                url += '?' + $.param(data);
             }
         }
         request.open(type, url, sync);

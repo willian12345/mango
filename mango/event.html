@@ -19,7 +19,7 @@
             <div class="d">
                 <div class="c">inner c</div>
             </div>
-        </div>
+        </div
         <select id="sel">
             <option>a</option>
             <option>b</option>
@@ -35,30 +35,36 @@
         <script type="text/javascript">
         console.time('tt');
         var el = document.querySelector('#showbox');
-        $('.b').on('click', function(e){
-            console.log('i am b');
-        });
-         $('.b').on('click/b', function(e){
-            console.log('i am b/b');
-        });
-        $('.b').on('click/c', function(e){
-            console.log('i am b/c');
-            e.stopPropagation();
-        }); 
-        $('.b').off('click/b');
-        $(el).on('click/helloworld', '.c', function(e){
-                console.log('i am showbox', e, this);
-        });   
+        for(var i=0; i<500; i++){
+            $('.second, #showbox').addClass('helloworld').css('border','1px solid red').append('<div>11</div>').width();
+        }
+        // $('.b').on('click', function(e){
+        //     console.log('i am b');
+        // });
+        //  $('.b').on('click/b', function(e){
+        //     console.log('i am b/b');
+        // });
+        // $('.b').on('click/c', function(e){
+        //     console.log('i am b/c');
+        //     e.stopPropagation();
+        // }); 
+        // $('.b').off('click/b');
+        // $(el).on('click/helloworld', '.c', function(e){
+        //         console.log('i am showbox', e, this);
+        // });   
         
-        $('select').on('change', function (e) {
-            console.log(this, e);
-        });
-        $(function(){
-            console.log(this, arguments)
-            $('.box').on('touchstart', function(e){
-                console.log(e);
-            });
-        })
+        // $('select').on('change', function (e) {
+        //     console.log(this, e);
+        // });
+        // $(function(){
+        //     console.log(this, arguments)
+        //     $('.box').on('touchstart', function(e){
+        //         console.log(e);
+        //     });
+        //     $.ajax({url:'http://www.sugarcane-mall.com/xiaodong/h5/ttt.php', success: function(info){
+        //         console.log(info);
+        //     }})
+        // })
         console.timeEnd('tt');
         </script>
   </body>
