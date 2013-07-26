@@ -86,11 +86,11 @@
             this.length = 1;
             this.context = selector;
             return this;
-        }else if(TypeOF.isString(selector)){// true selector
+        }else if(TypeOF.isString(selector)){// string
             this.length = 0;
             var _html = selector.match(rquickExpr);
             var _sHtml, _dom;
-            if( _html ){
+            if( _html ){// selector have to convert to html
                 _sHtml = rtagNameExpr.exec(selector);
                 if(_sHtml){
                     _dom = document.createElement(_sHtml[1]);
@@ -253,6 +253,7 @@
             });
             return mango(results);
         }
+        ,prevAll: function(){}
         ,next: function () {
             var results = [];
             Mango.each(this, function (node) {
@@ -263,6 +264,7 @@
             });
             return mango(results);
         }
+        ,nextAll: function(){}
         ,parents: function (selector) {
             var matched = [], get, matchedFunc;
             if(selector){
@@ -318,6 +320,11 @@
                 return this[0][name];
             }
         }
+        ,removeProp: function (propName) {
+            return this.each(function(node){
+                delete node[propName];
+            });
+        }
         ,attr: function (name, value) {
             if(!this[0]){
                 if(value === undefined){
@@ -339,6 +346,14 @@
             }else{
                 return this[0].getAttribute(name);
             }
+        }
+        ,removeAttr: function (attrName) {
+            if(attrName){
+                Mango.each(this, function (node) {
+                    node.removeAttribute(attrName);
+                });
+            }
+            return this;
         }
         ,val: function (value) {
             if(!this[0]){
@@ -392,7 +407,7 @@
             
             if(!eventName) return this;
 
-            if(arguments.length === 2){
+            if(!_cb){
                 _cb = selector;
                 selector = null;
             }
@@ -421,6 +436,7 @@
                     if(e._privateEvent && e._privateEvent != eventName){
                         return ;
                     }
+                    
                     if(selector){
                         //!!(container.compareDocumentPosition(maybe) & 16)
                         if(_el.webkitMatchesSelector(selector)){ // check delegate element
@@ -486,6 +502,19 @@
             });
             return this;
         }
+        ,one: function (eventName, delegate, cb) {
+            if(!cb){
+                cb = delegate;
+                delegate = null;
+            }
+            this.each(function(node){
+                var $node = $(node);
+                $node.on(eventName, delegate, function(e){
+                    cb.call(this, e);
+                    $node.off(eventName);
+                });
+            });
+        }
         ,offset: function () {
             if(!this[0]){
                 return {left:0, top:0};
@@ -530,6 +559,8 @@
             }
             return this;
         }
+        ,scrollLeft: function () {}
+        ,scrollTop: function () {}
     };
     // extend addClass,removeClass,toggleClass,hasClass
     ~function(){
