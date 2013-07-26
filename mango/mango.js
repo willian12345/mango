@@ -6,7 +6,8 @@
  */
 ;~function(window){
     'use strict';
-    var Mango, mango, _mango = {}, Events = {},EventsGuid=0, EventTrigger, _$, _extend, domReady = false, domReadyCallbacks
+    var Mango, mango, _mango = {}, Events = {}, guid=0, EventTrigger, _$, _extend
+    , domReady = false, domReadyCallbacks
     // check for HTML strings
     ,rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*)$/
     // Match a standalone tag
@@ -206,6 +207,27 @@
             }
             return this;
         }
+        ,show: function () {
+            Mango.each(this, function(node){
+                var status = node._mangodisplaystatus;
+                status = (status!==undefined) ? status : 'block';
+                var d = node.style.display;
+                if(d === 'none'){
+                    node.style.display = status;
+                }
+            });
+            return this;
+        }
+        ,hide: function () {
+            Mango.each(this, function(node){
+                var d = node.style.display;
+                node._mangodisplaystatus = d;
+                if(d !== 'none'){
+                    node.style.display = 'none';
+                }
+            });
+            return this;
+        }
         ,siblings: function (filter) {///
             var results = [];
             Mango.each(this, function (node) {
@@ -375,12 +397,12 @@
                 selector = null;
             }
             Mango.each(this, function (el) {
-                // The private attribute '_mangoeventid'
+                // The private attribute '_mangodomid'
                 // is make relationship between dom and Events object
-                var _id = el._mangoeventid; 
+                var _id = el._mangodomid; 
                 if(!_id){
-                    _id = EventsGuid++;
-                    el._mangoeventid =  _id;
+                    _id = guid++;
+                    el._mangodomid =  _id;
                     Events[_id] = {};
                 }
                 if(!Events[_id][eventName]){
@@ -420,7 +442,7 @@
         ,off: function (eventName) {
             if(!eventName) return this;
             Mango.each(this, function(el){
-                var _id = el._mangoeventid;
+                var _id = el._mangodomid;
                 if(_id){
                     Events[_id][eventName].handles.forEach(function(handle){
                         el.removeEventListener(eventName.split('/')[0], handle, false);
@@ -432,11 +454,11 @@
         ,hover: function (hoverIn, hoverOut) {
             if(_$.isFunction(hoverIn)){
                 Mango.each(this, function(el){
-                    var $el = $(el)
+                    var $el = $(el);
                     $el.on('mouseover', function(e){
                         // mouseEnter
                         if(el === e.srcElement && !el.contains(e.relatedTarget)){
-                            hoverIn.call(el, e)
+                            hoverIn.call(el, e);
                         }
                     });
                     if(_$.isFunction(hoverOut)){
@@ -661,7 +683,7 @@
             if (!eventType){
                 // custom event bubbling
                 $(element).parents().each(function(){
-                    var _id = this['_mangoeventid'];
+                    var _id = this['_mangodomid'];
                     if(_id){
                         Events[_id][eventName].handles.forEach(function(eventCb){
                             eventCb.call(this, {srcElement: element});
@@ -801,5 +823,7 @@
 
         head.appendChild(script);
     }
-    window.mango = window.$ = mango;    
+    window.mango = window.$ = mango;
+    // expose plugin interface
+    window.mango.fn = Mango.prototype;
 }(this);

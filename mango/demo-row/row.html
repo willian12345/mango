@@ -37,7 +37,6 @@
         var cursor = 0;
         $cur = $('#panel').find('li').eq(0);
         $lis = $('#panel').find('li:nth-child(n+2)');
-        console.log($lis);
         var down = function () {
             cursor++;
             $('#panel').css('-webkit-transform', 'translate3d(0, -'+ (cursor*100) +'px, 0)');

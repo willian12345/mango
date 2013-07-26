@@ -15,6 +15,7 @@ li{
 	line-height: 100px;
 	height: 100px;
 	font-size: 10em;
+	display: block;
 	background: green;
 	border-top: 2px solid #333;
 }
