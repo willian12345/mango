@@ -79,14 +79,12 @@
     Mango = function (selector, context) {
         context = context || document;
         if(!selector) return null;
-        if(selector.context){// mango
         if(selector instanceof Mango){// mango
             return selector;
         }else if(selector.nodeType){// dom
             this[0] = selector;
             this.length = 1;
             this.context = selector;
-            return this;
         }else if(TypeOF.isString(selector)){// string
             this.length = 0;
             var _html = selector.match(rquickExpr);
@@ -118,17 +116,15 @@
                 }.bind(this));
             }
             this.context = context;
-            return this;
         }else if(TypeOF.isArray(selector)){
             selector.forEach(function (v, i) {
                 this[i] = v;
             }.bind(this));
             this.length = selector.length;
             this.context = context;
-            return this;
         }else if(TypeOF.isFunction(selector)){
             if(domReady){
-                selector.call(window.document, this);
+                selector.call(document, this);
             }else{
                 if(!domReadyCallbacks){
                     domReadyCallbacks = [];
@@ -136,14 +132,15 @@
                 domReadyCallbacks.push(selector);
             }
         }
+        return this;
     };
     
-    window.document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
         domReady = true;
         var cb;
         if(domReadyCallbacks && domReadyCallbacks.length){
             while(cb = domReadyCallbacks.shift()){
-                cb.call(window.document, mango);
+                cb.call(document, mango);
             }
         }
     }, false);
@@ -180,6 +177,8 @@
             });
             return mango(results);
         }
+        // pretend mango to array object
+        ,splice: Array.prototype.splice
         ,remove: function () {
             Mango.each(this, function (node) {
                 node.parentNode.removeChild(node);
@@ -562,6 +561,19 @@
         }
         ,scrollLeft: function () {}
         ,scrollTop: function () {}
+        ,is: function (p) {
+            if(!p) return false;
+            if(TypeOF.isString(p)){
+                return this[0].webkitMatchesSelector(p);
+            }else if(TypeOF.isObject(p) && p instanceof Mango){
+                return this[0] === p[0];
+            }else if(p.nodeType){
+                return this[0] === p;
+            }else if(TypeOF.isFunction(p)){
+                return p.call(this[0]);
+            }
+            return false;
+        }
     };
     // extend addClass,removeClass,toggleClass,hasClass
     ~function(){
@@ -606,6 +618,17 @@
                 });
             });
             return this;
+        }
+    });
+    // extend scrollLeft scrollTop
+    ['scrollLeft', 'scrollTop'].forEach(function(v){
+        Mango.prototype[v] = function (value) {
+            if(TypeOF.isNumber(value)){
+                this.each(function(node){
+                    node[v] = value;
+                });
+            }
+            return this[0][v];
         }
     });
     // extend append,prepend,appendTo, prependTo
