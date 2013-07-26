@@ -19,3 +19,10 @@ li{
 	background: green;
 	border-top: 2px solid #333;
 }
+#overbox{
+	width: 100px;
+	height: 100px;
+	background: #666;
+	color: #000;
+	overflow: auto;
+}

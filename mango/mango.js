@@ -80,6 +80,7 @@
         context = context || document;
         if(!selector) return null;
         if(selector.context){// mango
+        if(selector instanceof Mango){// mango
             return selector;
         }else if(selector.nodeType){// dom
             this[0] = selector;
