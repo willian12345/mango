@@ -4,9 +4,9 @@
  * Date: 2013-06-15
  * github: https://github.com/willian12345/mango
  */
-;~function(window){
+;~function(window, undefined){
     'use strict';
-    var Mango, mango, _mango = {}, Events = {}, guid=0, EventTrigger, _$, _extend
+    var Mango, mango, _mango = {},  guid=0, Events = {}, EventTrigger, TypeOF, _extend
     , domReady = false, domReadyCallbacks
     // check for HTML strings
     ,rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*)$/
@@ -16,19 +16,19 @@
     ,rForUpperCase = /-(.)/g
     ,rUnit = /em|px|%/
     ;
-    _$ = (function(){
+    TypeOF = (function(){
         // create functions which is object's type check
-        var _o = {};
+        var typeObject = {};
         var o = ["Array", "Boolean", "Date", "Number", "Object", "RegExp", "String", 'Function'];
         for(var i = 0, c; c = o[i++];){
-            _o['is'+c] = (function(type){
+            typeObject['is'+c] = (function(type){
                 return function(obj){
                     if(!obj) return false;
                     return Object.prototype.toString.call(obj) == "[object " + type + "]";
                 }
             })(c);
         }
-        return _o;
+        return typeObject;
     })();
     // object extend function
     _extend = function() {
@@ -44,7 +44,7 @@
         }
 
         // Handle case when target is a string or something (possible in deep copy)
-        if ( typeof target !== "object" && !_$.isFunction(target) )
+        if ( typeof target !== "object" && !TypeOF.isFunction(target) )
             target = {};
 
         for ( ; i < length; i++ )
@@ -86,7 +86,7 @@
             this.length = 1;
             this.context = selector;
             return this;
-        }else if(_$.isString(selector)){// true selector
+        }else if(TypeOF.isString(selector)){// true selector
             this.length = 0;
             var _html = selector.match(rquickExpr);
             var _sHtml, _dom;
@@ -118,14 +118,14 @@
             }
             this.context = context;
             return this;
-        }else if(_$.isArray(selector)){
+        }else if(TypeOF.isArray(selector)){
             selector.forEach(function (v, i) {
                 this[i] = v;
             }.bind(this));
             this.length = selector.length;
             this.context = context;
             return this;
-        }else if(_$.isFunction(selector)){
+        }else if(TypeOF.isFunction(selector)){
             if(domReady){
                 selector.call(window.document, this);
             }else{
@@ -303,7 +303,7 @@
                 }
                 return this;
             }
-            if(_$.isObject(name)){
+            if(TypeOF.isObject(name)){
                 for(var v in name){
                     $(this).prop(v, name[v]);
                 }
@@ -325,7 +325,7 @@
                 }
                 return this;
             }
-            if(_$.isObject(name)){
+            if(TypeOF.isObject(name)){
                 for(var v in name){
                     $(this).attr(v, name[v]);
                 }
@@ -363,7 +363,7 @@
                 }
                 return this;
             }
-            if(_$.isObject(name)){
+            if(TypeOF.isObject(name)){
                 for(var v in name){
                     $(this).data(v, name[v]);
                 }
@@ -452,7 +452,7 @@
             });
         }
         ,hover: function (hoverIn, hoverOut) {
-            if(_$.isFunction(hoverIn)){
+            if(TypeOF.isFunction(hoverIn)){
                 Mango.each(this, function(el){
                     var $el = $(el);
                     $el.on('mouseover', function(e){
@@ -461,7 +461,7 @@
                             hoverIn.call(el, e);
                         }
                     });
-                    if(_$.isFunction(hoverOut)){
+                    if(TypeOF.isFunction(hoverOut)){
                         $el.on('mouseout', function(e){
                             // mouseLeave
                             if(el === e.srcElement && !el.contains(e.relatedTarget)){
@@ -500,7 +500,7 @@
                 }
                 return this;
             }
-            if(_$.isObject(p)){
+            if(TypeOF.isObject(p)){
                 for(var _v in p){
                     $(this).css(_v, p[_v]);
                 }
@@ -736,7 +736,7 @@
     })();
 
     // merge into mango
-    _extend(mango, _$);
+    _extend(mango, TypeOF);
     mango.extend = _extend;
     mango.param = function( a ) {
         var s = [ ];
@@ -802,13 +802,13 @@
     mango.getJSON = function (url, data, callback) {
         var head = document.getElementsByTagName("head")[0];
         var script = document.createElement("script");
-        var randomFunc = 'jsonp' + Date.now() + Math.ceil(Math.random() * 10000);
+        var uniqueName = 'jsonp' + Date.now() + Math.ceil(Math.random() * 10000);
         if(!callback){
             callback = data;
         }
-        window[randomFunc] = callback;
+        window[uniqueName] = callback;
         if(url){
-            url = url.replace(/=\?/g, ('='+randomFunc));
+            url = url.replace(/=\?/g, ('='+uniqueName));
         }
         if($.isObject(data)){
             url += '&';
@@ -826,4 +826,4 @@
     window.mango = window.$ = mango;
     // expose plugin interface
     window.mango.fn = Mango.prototype;
-}(this);
+}(window);
