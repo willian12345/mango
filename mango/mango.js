@@ -177,7 +177,7 @@
             });
             return mango(results);
         }
-        // pretend mango to array object
+        // The splice which make mango to pretend to array object
         ,splice: Array.prototype.splice
         ,remove: function () {
             Mango.each(this, function (node) {
@@ -879,6 +879,15 @@
         head.appendChild(script);
     }
     window.mango = window.$ = mango;
-    // expose plugin interface
+    // Expose plugin interface
     window.mango.fn = Mango.prototype;
+    
+    //Extend some mouse event
+    ['click','dblclick','focusout','mousedown','mousemove','mouseout','mouseover','mouseup'].forEach(function(v){
+        $.fn[v] = function(cb) {
+            this.each(function(node){
+                $(node).on(v,cb);
+            })
+        }
+    });
 }(window);
