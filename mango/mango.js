@@ -77,9 +77,9 @@
 
     // main Function 
     Mango = function (selector, context, prevObject) {
-        context = context || document;
         if(TypeOF.isString(context))
             context = document.querySelector(context);
+        context = context || document;
         if(!selector) return null;
         if(selector instanceof Mango){// mango
             return selector;
