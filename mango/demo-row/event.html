@@ -3,9 +3,6 @@
   <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <title>mango test demo</title>
-    <style type="text/css">
-
-    </style>
     <link rel="stylesheet" type="text/css" href="event.css">
   </head>
   <body>
@@ -33,11 +30,13 @@
         </div>
         <input type="text" id="ipt" />
         <script type="text/javascript">
-        console.time('tt');
+        
         var el = document.querySelector('#showbox');
+        console.time('tt');
         for(var i=0; i<500; i++){
-            $('.second, #showbox').addClass('helloworld').css('border','1px solid red').append('<div>11</div>').width();
+            $('.second, #showbox').addClass('helloworld').css('border','1px solid red').prev().next().append('<div>11</div>').width();
         }
+        console.timeEnd('tt');
         // $('.b').on('click', function(e){
         //     console.log('i am b');
         // });
@@ -65,7 +64,6 @@
         //         console.log(info);
         //     }})
         // })
-        console.timeEnd('tt');
         </script>
   </body>
 </html> 

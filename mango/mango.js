@@ -4,7 +4,7 @@
  * Date: 2013-06-15
  * github: https://github.com/willian12345/mango
  */
-;~function(window, undefined){
+;+function(window, undefined){
     'use strict';
     var Mango, mango, _mango = {},  guid=0, Events = {}, EventTrigger, TypeOF, _extend
     , domReady = false, domReadyCallbacks
@@ -76,12 +76,14 @@
     }; 
 
     // main Function 
-    Mango = function (selector, context) {
+    Mango = function (selector, context, prevObject) {
         context = context || document;
+        if(TypeOF.isString(context))
+            context = document.querySelector(context);
         if(!selector) return null;
         if(selector instanceof Mango){// mango
             return selector;
-        }else if(selector.nodeType){// dom
+        }else if(selector.nodeType || selector.document){// dom
             this[0] = selector;
             this.length = 1;
             this.context = selector;
@@ -116,13 +118,13 @@
                 }.bind(this));
             }
             this.context = context;
-        }else if(TypeOF.isArray(selector)){
+        }else if(TypeOF.isArray(selector)){//Array
             selector.forEach(function (v, i) {
                 this[i] = v;
             }.bind(this));
             this.length = selector.length;
             this.context = context;
-        }else if(TypeOF.isFunction(selector)){
+        }else if(TypeOF.isFunction(selector)){//function
             if(domReady){
                 selector.call(document, this);
             }else{
@@ -131,6 +133,10 @@
                 }
                 domReadyCallbacks.push(selector);
             }
+        }
+
+        if(prevObject){
+            this.prevObject = prevObject;
         }
         return this;
     };
@@ -159,6 +165,17 @@
     Mango.next = function (node) {
         return node.nextElementSibling;
     };
+
+    // main function for interface
+    mango = (function(){
+        return function (selector, context, _prevObject) {
+            return new Mango(selector, context, _prevObject);
+        }
+    })();
+    
+    // merge into mango
+    _extend(mango, TypeOF);
+    mango.extend = _extend;
     
     Mango.prototype = {
         constructor: Mango
@@ -175,7 +192,7 @@
                     }
                 }
             });
-            return mango(results);
+            return mango(results, this, this);
         }
         // The splice which make mango to pretend to array object
         ,splice: Array.prototype.splice
@@ -243,51 +260,45 @@
             });
             return mango(results);
         }
-        ,prev: function () {
-            var results = [];
-            Mango.each(this, function (node) {
-                var prev = Mango.prev(node);
-                if(prev){
-                    results.push(prev);
-                }
-            });
-            return mango(results);
-        }
-        ,prevAll: function(){}
-        ,next: function () {
-            var results = [];
-            Mango.each(this, function (node) {
-                var next = Mango.next(node);
-                if(next){
-                    results.push(next);
-                }
-            });
-            return mango(results);
-        }
-        ,nextAll: function(){}
-        ,parents: function (selector) {
-            var matched = [], get, matchedFunc;
+        ,add: function (selector, context) {
+            var self = this;
             if(selector){
-                matchedFunc = function (node) {
-                    if(node.webkitMatchesSelector(selector)){
+                mango(selector, context).each(function(){
+                    var addNode = this;
+                    var has = false;
+                    self.each(function(){
+                        if(addNode === this){
+                            has = true;
+                            return false
+                        }
+                    });
+                    if(!has){
+                        self[self.length] = addNode;
+                        self.length++;
+                    }
+                });
+            }
+            return this;
+        }
+        ,addBack: function () {
+            return this.prevObject && this.add(this.prevObject);
+        }
+        ,parents: function (selector) {
+            var matched = [];
+            this.each(function (node) {
+                while(node = node.parentElement){
+                    if(selector){
+                        if(node.webkitMatchesSelector(selector))
+                            matched.push(node);
+                    }else{
                         matched.push(node);
                     }
                 }
-            }else{
-               matchedFunc = function (node) {
-                    matched.push(node);
-                }
-            }
-            Mango.each(this, function (node) {
-                while(node && node.nodeType!==9){
-                    matchedFunc(node);
-                    node = node.parentElement;
-                }
             });
-            return $(matched);
+            return mango(matched, this, this);
         }
         ,eq: function (i) {
-            return mango(this[i]);
+            return mango(this[i], this, this);
         }
         ,get: function (i) {
             return this[i];
@@ -307,7 +318,7 @@
             }
             if(TypeOF.isObject(name)){
                 for(var v in name){
-                    $(this).prop(v, name[v]);
+                    mango(this).prop(v, name[v]);
                 }
                 return this;
             }
@@ -334,7 +345,7 @@
             }
             if(TypeOF.isObject(name)){
                 for(var v in name){
-                    $(this).attr(v, name[v]);
+                    mango(this).attr(v, name[v]);
                 }
                 return this;
             }
@@ -380,7 +391,7 @@
             }
             if(TypeOF.isObject(name)){
                 for(var v in name){
-                    $(this).data(v, name[v]);
+                    mango(this).data(v, name[v]);
                 }
                 return this;
             }
@@ -400,7 +411,7 @@
                 if(p)
                     results.push(p);
             });
-            return $(results);
+            return mango(results);
         }
         ,on: function (eventName, selector, cb) {
             var _cb = cb, eventDispacher;
@@ -411,10 +422,11 @@
                 _cb = selector;
                 selector = null;
             }
+
             Mango.each(this, function (el) {
                 // The private attribute '_mangodomid'
                 // is make relationship between dom and Events object
-                var _id = el._mangodomid; 
+                var _id = el._mangodomid;
                 if(!_id){
                     _id = guid++;
                     el._mangodomid =  _id;
@@ -470,7 +482,7 @@
         ,hover: function (hoverIn, hoverOut) {
             if(TypeOF.isFunction(hoverIn)){
                 Mango.each(this, function(el){
-                    var $el = $(el);
+                    var $el = mango(el);
                     $el.on('mouseover', function(e){
                         // mouseEnter
                         if(el === e.srcElement && !el.contains(e.relatedTarget)){
@@ -508,7 +520,7 @@
                 delegate = null;
             }
             this.each(function(node){
-                var $node = $(node);
+                var $node = mango(node);
                 $node.on(eventName, delegate, function(e){
                     cb.call(this, e);
                     $node.off(eventName);
@@ -531,7 +543,7 @@
             }
             if(TypeOF.isObject(p)){
                 for(var _v in p){
-                    $(this).css(_v, p[_v]);
+                    mango(this).css(_v, p[_v]);
                 }
                 return this;
             }
@@ -559,8 +571,6 @@
             }
             return this;
         }
-        ,scrollLeft: function () {}
-        ,scrollTop: function () {}
         ,is: function (p) {
             if(!p) return false;
             if(TypeOF.isString(p)){
@@ -575,11 +585,12 @@
             return false;
         }
     };
+
     // extend addClass,removeClass,toggleClass,hasClass
-    ~function(){
+    +function(){
         var classList = {addClass: 'add', removeClass: 'remove', toggleClass: 'toggle', hasClass: 'contains'};
         for(var k in classList){
-            ~function(_k){
+            +function(_k){
                 Mango.prototype[_k] = function (className) {
                     Mango.each(this, function (node) {
                         node && node.classList[classList[_k]](className);
@@ -611,7 +622,7 @@
         }
         
         Mango.prototype[v] = function (selector) {
-            var self = this, $selector = $(selector);
+            var self = this, $selector = mango(selector);
             Mango.each(this, function(target){
                 Mango.each($selector, function (el) {
                    add(target, el, selector);
@@ -665,7 +676,7 @@
         }
         Mango.prototype[v + 'To'] = function (selector) {
             var self = this;
-            Mango.each($(selector), function(target){
+            Mango.each(mango(selector), function(target){
                 Mango.each(self, function (el) {
                     add(target, el, selector);
                 });
@@ -674,8 +685,41 @@
             return this;
         }
         Mango.prototype[v] = function (child) {
-            $(child)[v + 'To'](this);
+            mango(child)[v + 'To'](this);
             return this;
+        }
+    });
+    
+    // extend next prev
+    ['next','prev'].forEach(function(v){
+        Mango.prototype[v] = function(selector){
+            var results = [];
+            this.each(function (node) {
+                var _node = Mango[v](node);
+                if(_node){
+                    if(selector){
+                        if(_node.webkitMatchesSelector(selector))
+                            results.push(_node);
+                    }else{
+                        results.push(_node);
+                    }
+                }
+            });
+            return mango(results);
+        }
+        Mango.prototype[v + 'All'] = function (selector) {
+            var results = [];
+            this.each(function (node) {
+                while(node = Mango[v](node)){
+                    if(selector){
+                        if(node.webkitMatchesSelector(selector))
+                            results.push(node);
+                    }else{
+                        results.push(node);
+                    }
+                }
+            });
+            return mango(results);    
         }
     });
     // extend width,height,innerWidth, outerWidth, innerHeight, outerHeight
@@ -696,7 +740,7 @@
                         value += 'px';
                     }
                 }
-                Mango.each(this, function(el){
+                this.each(function(el){
                     el.style[_v] = value;
                 });
             }
@@ -722,8 +766,16 @@
             }
             return this;
         }
+    });    
+    //Extend some events
+    ['click','dblclick','focusout','mousedown','mousemove','mouseout','mouseover','mouseup', 'change',
+     'select', 'focus', 'blur', 'scroll', 'resize','submit','keydown','keypress','keyup','error'].forEach(function(v){
+        Mango.prototype[v] = function(cb) {
+            this.each(function(node){
+                !!cb ? mango(node).on(v,cb): mango(node).trigger();
+            });
+        }
     });
-
     // w3c original event model
     EventTrigger = {
         trigger: function (element, eventName, _privateEvent){
@@ -737,7 +789,7 @@
 
             if (!eventType){
                 // custom event bubbling
-                $(element).parents().each(function(){
+                mango(element).parents().addBack().each(function(){
                     var _id = this['_mangodomid'];
                     if(_id){
                         Events[_id][eventName].handles.forEach(function(eventCb){
@@ -745,7 +797,6 @@
                         }.bind(this));
                     }
                 });
-                /// todo optimize
                 return ;
             }
 
@@ -781,18 +832,7 @@
             bubbles: true,
             cancelable: true
         }
-    }
-
-    // main function for interface
-    mango = (function(){
-        return function (selector, context) {
-            return new Mango(selector, context);
-        }
-    })();
-
-    // merge into mango
-    _extend(mango, TypeOF);
-    mango.extend = _extend;
+    };
     mango.param = function( a ) {
         var s = [ ];
         function add( key, value ){
@@ -820,7 +860,7 @@
 
         // Return the resulting serialization
         return s.join("&").replace(/%20/g, "+");
-    }
+    };
     mango.ajax = function (opts) {
         var url = opts.url;
         var type = (opts.type || 'GET').toUpperCase();
@@ -877,17 +917,9 @@
         };
 
         head.appendChild(script);
-    }
+    };
+    // Assign mango to window
     window.mango = window.$ = mango;
     // Expose plugin interface
     window.mango.fn = Mango.prototype;
-    
-    //Extend some mouse event
-    ['click','dblclick','focusout','mousedown','mousemove','mouseout','mouseover','mouseup'].forEach(function(v){
-        $.fn[v] = function(cb) {
-            this.each(function(node){
-                $(node).on(v,cb);
-            })
-        }
-    });
 }(window);

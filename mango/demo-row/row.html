@@ -55,31 +55,33 @@
         // console.time('remove function');
         // $('li').remove();
         // console.timeEnd('remove function');
-        var cursor = 0;
-        $cur = $('#panel').find('li').eq(0);
-        $lis = $('#panel').find('li:nth-child(n+2)');
-        var down = function () {
-            cursor++;
-            $('#panel').css('-webkit-transform', 'translate3d(0, -'+ (cursor*100) +'px, 0)');
-            if(cursor){
-                if(cursor === 1){
-                    $cur.css('-webkit-transform', 'translate3d(0, 100px, 0)');
-                }
-            }
-            setTimeout(function(){
-                // $('#panel').css('-webkit-transition', 'all 0 ease-in');
-                // $('#panel').css('-webkit-transform', 'translate3d(0, 0, 0)');
-                // $('#panel').css('-webkit-transition', 'all .2 ease-in');
-            },200);
-        }
-
-        $(document).on('keydown', function(e){
-            if(e.keyCode === 38){
-                down();
-            }else if(e.keyCode === 40){
-                up();
-            }
+        // var cursor = 0;
+        // $cur = $('#panel').find('li').eq(0);
+        // $lis = $('#panel').find('li:nth-child(n+2)');
+        // var down = function () {
+        //     cursor++;
+        //     $('#panel').css('-webkit-transform', 'translate3d(0, -'+ (cursor*100) +'px, 0)');
+        //     if(cursor){
+        //         if(cursor === 1){
+        //             $cur.css('-webkit-transform', 'translate3d(0, 100px, 0)');
+        //         }
+        //     }
+        //     setTimeout(function(){
+        //         // $('#panel').css('-webkit-transition', 'all 0 ease-in');
+        //         // $('#panel').css('-webkit-transform', 'translate3d(0, 0, 0)');
+        //         // $('#panel').css('-webkit-transition', 'all .2 ease-in');
+        //     },200);
+        // }
+        $('.row').on('click', 'li', function(){
+            console.log(this,111);
         });
+        // $(document).on('keydown', function(e){
+        //     if(e.keyCode === 38){
+        //         down();
+        //     }else if(e.keyCode === 40){
+        //         up();
+        //     }
+        // });
         </script>
   </body>
 </html> 
