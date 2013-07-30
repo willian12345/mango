@@ -30,7 +30,7 @@
         }
         return typeObject;
     })();
-    // object extend function
+    // The extend core is from jquery
     _extend = function() {
         // copy reference to target object
         var target = arguments[0] || {}, i = 1, length = arguments.length, deep = false, options;
@@ -77,51 +77,57 @@
 
     // main Function 
     Mango = function (selector, context, prevObject) {
-        if(TypeOF.isString(context))
+        var self = this;
+        if(typeof context === 'string')
             context = document.querySelector(context);
         context = context || document;
-        if(!selector) return null;
+        if(!selector) return this;
         if(selector instanceof Mango){// mango
             return selector;
         }else if(selector.nodeType || selector.document){// dom
             this[0] = selector;
             this.length = 1;
             this.context = selector;
-        }else if(TypeOF.isString(selector)){// string
+        }else if(typeof selector === 'string'){// string
             this.length = 0;
-            var _html = selector.match(rquickExpr);
             var _sHtml, _dom;
-            if( _html ){// selector have to convert to html
-                _sHtml = rtagNameExpr.exec(selector);
-                if(_sHtml){
-                    _dom = document.createElement(_sHtml[1]);
-                    this[0] = _dom;
-                    this.length = 1;
-                }else{
-                    _dom = document.createElement('div');
-                    _dom.innerHTML = selector;
-                    if(_dom.childElementCount === 1){
-                        this[0] = _dom.childNodes[0];
-                        this.length = 1; 
-                    }else if(_dom.childElementCount > 1){
-                        for(var i=0,j=_dom.childElementCount; i<j; i++){
-                            this[this.length] = _dom.childNodes[i];
-                            this.length++;
+            if(selector === 'body'){
+                this[0] = document.body;
+                this.length = 1;
+            }else{
+                 var _html = selector.match(rquickExpr);
+                 if( _html ){// selector have to convert to html
+                    _sHtml = rtagNameExpr.exec(selector);
+                    if(_sHtml){
+                        _dom = document.createElement(_sHtml[1]);
+                        this[0] = _dom;
+                        this.length = 1;
+                    }else{
+                        _dom = document.createElement('div');
+                        _dom.innerHTML = selector;
+                        if(_dom.childElementCount === 1){
+                            this[0] = _dom.childNodes[0];
+                            this.length = 1; 
+                        }else if(_dom.childElementCount > 1){
+                            for(var i=0,j=_dom.childElementCount; i<j; i++){
+                                this[this.length] = _dom.childNodes[i];
+                                this.length++;
+                            }
                         }
+                        _dom = null;
                     }
-                    _dom = null;
+                } else {
+                    Mango.each(context.querySelectorAll(selector),function(ele, i){
+                        self[self.length] = ele;
+                        self.length++;
+                    });
                 }
-            } else {
-                Mango.each(context.querySelectorAll(selector),function(ele, i){
-                    this[this.length] = ele;
-                    this.length++;
-                }.bind(this));
             }
             this.context = context;
         }else if(TypeOF.isArray(selector)){//Array
             selector.forEach(function (v, i) {
-                this[i] = v;
-            }.bind(this));
+                self[i] = v;
+            });
             this.length = selector.length;
             this.context = context;
         }else if(TypeOF.isFunction(selector)){//function
@@ -180,9 +186,8 @@
     Mango.prototype = {
         constructor: Mango
         ,find: function (query) {
-            var self = this;
             var results = [];
-            Mango.each(self, function (node) {
+            this.each(function (node) {
                 if(node){
                     var r = node.querySelectorAll(query);
                     if(r){
@@ -194,8 +199,6 @@
             });
             return mango(results, this, this);
         }
-        // The splice which make mango to pretend to array object
-        ,splice: Array.prototype.splice
         ,remove: function () {
             Mango.each(this, function (node) {
                 node.parentNode.removeChild(node);
@@ -584,6 +587,8 @@
             }
             return false;
         }
+        // The splice which make mango to pretend to array object
+        ,splice: Array.prototype.splice
     };
 
     // extend addClass,removeClass,toggleClass,hasClass

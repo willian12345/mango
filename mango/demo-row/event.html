@@ -6,7 +6,7 @@
     <link rel="stylesheet" type="text/css" href="event.css">
   </head>
   <body>
-        <script type="text/javascript" src="../mango.min.js"></script>
+        <script type="text/javascript" src="../mango.js"></script>
         <div class="hel">11</div>
         <div class="second">hi</div>
         <div id="showbox">
@@ -33,8 +33,9 @@
         
         var el = document.querySelector('#showbox');
         console.time('tt');
-        for(var i=0; i<500; i++){
-            $('.second, #showbox').addClass('helloworld').css('border','1px solid red').prev().next().append('<div>11</div>').width();
+        for(var i=0; i<5000; i++){
+            // $(document.body).find('.second, #showbox').addClass('helloworld').css('border','1px solid red').prev().next().append('<div>11</div>').width();
+            $('body').find('.second, #showbox')
         }
         console.timeEnd('tt');
         // $('.b').on('click', function(e){
