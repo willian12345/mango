@@ -1,5 +1,6 @@
 /*!
  * mango JavaScript Library v1.0
+ * pure javascript just for webkit
  * author: willian.xiaodong
  * Date: 2013-06-15
  * github: https://github.com/willian12345/mango
@@ -15,6 +16,7 @@
     ,rtagNameExpr = /^<(\w+)\s*\/?>$/
     ,rForUpperCase = /-(.)/g
     ,rUnit = /em|px|%/
+    ,indexOf = Array.prototype.indexOf
     ;
     TypeOF = (function(){
         // create functions which is object's type check
@@ -586,6 +588,11 @@
                 return p.call(this[0]);
             }
             return false;
+        }
+        ,index: function(){
+            var n = this[0];
+            if(!n) return -1;
+            return indexOf.call(n.parentElement.children, n);
         }
         // The splice which make mango to pretend to array object
         ,splice: Array.prototype.splice
