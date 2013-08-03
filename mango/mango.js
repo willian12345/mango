@@ -197,7 +197,7 @@
     /**
      * Dom module
      */
-    +function(){
+    ;+function(){
         mango.extend($.fn, {
             find: function (query) {
                 var results = [];
@@ -696,12 +696,10 @@
         });
     }();
     
-    
-
     /**
      * Event module
      */
-    +function(){
+    ;+function(){
         mango.extend($.fn, {
             on: function (eventName, selector, cb) {
                 var _cb = cb, eventDispacher;
@@ -889,7 +887,7 @@
     /**
      * Ajax module
      */
-    +function(){
+    ;+function(){
         mango.param = function( a ) {
             var s = [ ];
             function add( key, value ){
