@@ -432,14 +432,18 @@
                     return this[0].dataset[name];
                 }
             }
-            ,parent: function () {
-                var results = [];
+            ,parent: function (selector) {
+                var matched = [];
                 Mango.each(this, function (node) {
-                    var p = node.parentElement;
-                    if(p)
-                        results.push(p);
+                    var node = node.parentElement;
+                    if(selector){
+                        if(node.webkitMatchesSelector(selector))
+                            matched.push(node);
+                    }else{
+                        matched.push(node);
+                    }
                 });
-                return mango(results);
+                return mango(matched);
             }
             ,offset: function () {
                 if(!this[0]){
@@ -448,22 +452,26 @@
                 return {left:this[0].offsetLeft, top:this[0].offsetTop};
             }
             ,css: function (p, v) {
-                var s, i;
-                if(!this[0]){
-                    if(v === undefined){
-                        return undefined;
-                    }
-                    return this;
-                }
+                var s, i, cssBat;
                 if(TypeOF.isObject(p)){
+                    cssBat = '';
+                    // faster
                     for(var _v in p){
-                        mango(this).css(_v, p[_v]);
+                        cssBat += _v + ':'+ p[_v] +';';
                     }
+                    // slow
+                    // s = JSON.stringify(p).replace(/\",/g, function(){
+                    //     return ';';
+                    // });
+                    // s = s.replace(/[\{\}\"]/g,'');
+                    this.each(function(node){
+                        node.style.cssText += cssBat;
+                    });
                     return this;
                 }
                 if(v !== undefined){
                     var strArr = [];
-                    // Uppercase the letter after the '-'
+                    // Uppercase the letter which after the '-'
                     p = p.replace(rForUpperCase, function($1,$2) {
                         return $2.toUpperCase(); 
                     });
@@ -474,7 +482,6 @@
                     Mango.each(this, function (node) {
                         node.style[p] = v;
                     });
-                    return this;
                 }else{
                     s = window.getComputedStyle(this[0]);
                     if(s){
@@ -785,6 +792,7 @@
                 return this;
             }
             ,trigger: function (eventName) {
+                /// todo receive eventObject
                 var privateEvent = null, eventNamespace;
                 if(!eventName) return this;
 
@@ -793,7 +801,7 @@
                     privateEvent = eventName;
                 }
                 Mango.each(this, function(el) {
-                    EventTrigger.trigger(el,eventNamespace[0], privateEvent);
+                    EventTrigger.trigger(el, eventNamespace[0], privateEvent);
                 });
                 return this;
             }
