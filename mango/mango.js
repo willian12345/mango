@@ -150,6 +150,7 @@
         }
         return this;
     };
+    Mango.prototype.constructor = Mango;
     
     document.addEventListener('DOMContentLoaded', function () {
         domReady = true;
@@ -186,14 +187,19 @@
     // merge into mango
     _extend(mango, TypeOF);
     mango.extend = _extend;
+    // Assign mango to window and pretend to jQuery
+    window.jQuery = window.mango = window.$ = mango;
+    // Expose plugin interface
+    window.$.fn = Mango.prototype;
+    $.each = Mango.each;
     
+
     /**
      * Dom module
      */
     +function(){
-        Mango.prototype = {
-            constructor: Mango
-            ,find: function (query) {
+        mango.extend($.fn, {
+            find: function (query) {
                 var results = [];
                 this.each(function (node) {
                     if(node){
@@ -208,10 +214,15 @@
                 return mango(results, this, this);
             }
             ,remove: function () {
-                Mango.each(this, function (node) {
+                this.each(function (node) {
                     node.parentNode.removeChild(node);
                 });
                 return this;
+            }
+            ,empty: function () {
+                this.each(function(){
+                    this.innerHTML = '';
+                });
             }
             ,html: function (str) {
                 var r;
@@ -494,7 +505,7 @@
             }
             // The splice which make mango to pretend to array object
             ,splice: Array.prototype.splice
-        };
+        });
         // extend addClass,removeClass,toggleClass,hasClass
         +function(){
             var classList = {addClass: 'add', removeClass: 'remove', toggleClass: 'toggle', hasClass: 'contains'};
@@ -678,16 +689,13 @@
         });
     }();
     
-    // Assign mango to window
-    window.mango = window.$ = mango;
-    // Expose plugin interface
-    window.mango.fn = Mango.prototype;
+    
 
     /**
      * Event module
      */
     +function(){
-        mango.extend(mango.fn, {
+        mango.extend($.fn, {
             on: function (eventName, selector, cb) {
                 var _cb = cb, eventDispacher;
                 
@@ -802,13 +810,13 @@
                     });
                 });
             }
-        });    
+        });
         //Extend some events
         ['click','dblclick','focusout','mousedown','mousemove','mouseout','mouseover','mouseup', 'change',
          'select', 'focus', 'blur', 'scroll', 'resize','submit','keydown','keypress','keyup','error'].forEach(function(v){
             Mango.prototype[v] = function(cb) {
                 this.each(function(node){
-                    !!cb ? mango(node).on(v,cb): mango(node).trigger();
+                    !!cb ? $(node).on(v,cb): $(node).trigger(v);
                 });
             }
         });
@@ -822,12 +830,11 @@
                 for (var name in EventTrigger.eventMatchers){
                     if (EventTrigger.eventMatchers[name].test(eventName)) { eventType = name; break; }
                 }
-
                 if (!eventType){
                     // custom event bubbling
                     mango(element).parents().addBack().each(function(){
                         var _id = this['_mangodomid'];
-                        if(_id){
+                        if(_id !== undefined){
                             Events[_id][eventName].handles.forEach(function(eventCb){
                                 eventCb.call(this, {srcElement: element});
                             }.bind(this));
