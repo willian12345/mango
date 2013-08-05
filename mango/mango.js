@@ -85,7 +85,10 @@
         if(typeof context === 'string')
             context = document.querySelector(context);
         context = context || document;
-        if(!selector) return this;
+        if(!selector){
+            this.length = 0;
+            return this;  
+        }
         if(selector instanceof Mango){// mango
             return selector;
         }else if(selector.nodeType || selector.document){// dom
@@ -128,12 +131,8 @@
                 }
             }
             this.context = context;
-        }else if(TypeOF.isArray(selector)){//Array
-            selector.forEach(function (v, i) {
-                self[i] = v;
-            });
-            this.length = selector.length;
-            this.context = context;
+        }else if(selector instanceof NodeList){//Nodelist
+            return this.pushStack(selector);
         }else if(TypeOF.isFunction(selector)){//function
             if(domReady){
                 selector.call(document, this);
@@ -170,6 +169,25 @@
             }
         }
     };
+    Mango.merge = function (first, second) {
+        var l = second.length,
+            i = first.length,
+            j = 0;
+
+        if ( typeof l === "number" ) {
+            for ( ; j < l; j++ ) {
+                first[ i++ ] = second[ j ];
+            }
+        } else {
+            while ( second[j] !== undefined ) {
+                first[ i++ ] = second[ j++ ];
+            }
+        }
+
+        first.length = i;
+
+        return first;
+    };
     Mango.prev = function (node) {
         return node.previousElementSibling;
     };
@@ -184,7 +202,7 @@
         }
     })();
     
-    // merge into mango
+// merge into mango
     _extend(mango, TypeOF);
     mango.extend = _extend;
     // Assign mango to window and pretend to jQuery
@@ -199,19 +217,26 @@
      */
     ;+function(){
         mango.extend($.fn, {
-            find: function (query) {
-                var results = [];
+            // Optimize the results that returned from operation
+            pushStack: function(elems) {
+                var ret = Mango.merge(new this.constructor(), elems);
+                ret.prevObject = this;
+                ret.context = this.context;
+                return ret;
+            }
+            ,find: function (query) {
+                var matched = [];
                 this.each(function (node) {
                     if(node){
                         var r = node.querySelectorAll(query);
                         if(r){
                             Mango.each(r, function (node){
-                                results.push(node);
+                                matched.push(node);
                             });
                         }
                     }
                 });
-                return mango(results, this, this);
+                return this.pushStack(matched);
             }
             ,remove: function () {
                 this.each(function (node) {
@@ -268,19 +293,19 @@
                 return this;
             }
             ,siblings: function (filter) {///
-                var results = [];
+                var matched = [];
                 Mango.each(this, function (node) {
                     var parent = node.parentNode;
                     var child = parent.childNodes;
                     if(child.length){
                         for(var i=0,j=child.length; i<j; i++){
                             if(child[i] != node && child[i].nodeType === 1){
-                                results.push(child[i])
+                                matched.push(child[i])
                             }
                         }
                     }
                 });
-                return mango(results);
+                return this.pushStack(matched);
             }
             ,add: function (selector, context) {
                 var self = this;
@@ -305,6 +330,22 @@
             ,addBack: function () {
                 return this.prevObject && this.add(this.prevObject);
             }
+            ,end: function () {
+                return $(this.prevObject);
+            }
+            ,closest: function (selector) {
+                var matched = [];
+                if(!selector) return this;
+                this.each(function(node){
+                    while(node = node.parentElement){
+                        if(node.webkitMatchesSelector(selector)){
+                            matched.push(node);
+                            break;
+                        }
+                    }
+                });
+                return this.pushStack(matched);
+            }
             ,parents: function (selector) {
                 var matched = [];
                 this.each(function (node) {
@@ -317,7 +358,23 @@
                         }
                     }
                 });
-                return mango(matched, this, this);
+                return this.pushStack(matched);
+            }
+            ,children: function (selector){
+                // Mango.pushStack();
+                var matched = [];
+                this.each(function(node){
+                    var c = node.children;
+                    for(var i=0, j=c.length; i<j;i++){
+                        if(selector){
+                            if(n.webkitMatchesSelector(selector));
+                                matched.push(n);
+                        }else{
+                            matched.push(c[i]);
+                        }
+                    }
+                });
+                return this.pushStack(matched);
             }
             ,eq: function (i) {
                 return mango(this[i], this, this);
@@ -443,7 +500,7 @@
                         matched.push(node);
                     }
                 });
-                return mango(matched);
+                return this.pushStack(matched);
             }
             ,offset: function () {
                 if(!this[0]){
@@ -632,7 +689,7 @@
                         }
                     }
                 });
-                return mango(results);
+                return this.pushStack(results);
             }
             Mango.prototype[v + 'All'] = function (selector) {
                 var results = [];
@@ -646,7 +703,7 @@
                         }
                     }
                 });
-                return mango(results);    
+                return this.pushStack(results);
             }
         });
         // extend width,height,innerWidth, outerWidth, innerHeight, outerHeight
@@ -684,7 +741,7 @@
             // include padding+border+margin
             Mango.prototype['outer' + v] = function (value) {
                 var s, mtb, mlr;
-                if(value===undefined){
+                if(value === undefined){
                     if(!this[0]) return undefined;
                     s = window.getComputedStyle(this[0]);
                     mtb = parseInt(s['margin-top']) + parseInt(s['margin-bottom']);
