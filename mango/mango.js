@@ -1,6 +1,6 @@
 /*!
  * mango JavaScript Library v1.0
- * pure javascript just for webkit
+ * just for webkit
  * author: willian.xiaodong
  * Date: 2013-06-15
  * github: https://github.com/willian12345/mango
@@ -17,6 +17,7 @@
     ,rForUpperCase = /-(.)/g
     ,rUnit = /em|px|%/
     ,indexOf = Array.prototype.indexOf
+    ,splice = Array.prototype.splice
     ;
     TypeOF = (function(){
         // create functions which is object's type check
@@ -227,7 +228,7 @@
             ,find: function (query) {
                 var matched = [];
                 this.each(function (node) {
-                    if(node){
+                    if(node && node.nodeType != 3){// text node have not querySelector
                         var r = node.querySelectorAll(query);
                         if(r){
                             Mango.each(r, function (node){
@@ -360,8 +361,24 @@
                 });
                 return this.pushStack(matched);
             }
+            ,parentsUntil: function (selector) {
+                var matched = [];
+                this.each(function (node) {
+                    while(node = node.parentElement){
+                        if(selector){
+                            if($(node).is(selector)){
+                                break;
+                            }else{
+                                matched.push(node);
+                            }
+                        }else{
+                            matched.push(node);
+                        }
+                    }
+                });
+                return this.pushStack(matched);
+            }
             ,children: function (selector){
-                // Mango.pushStack();
                 var matched = [];
                 this.each(function(node){
                     var c = node.children;
@@ -372,6 +389,16 @@
                         }else{
                             matched.push(c[i]);
                         }
+                    }
+                });
+                return this.pushStack(matched);
+            }
+            ,contents: function () {
+                var matched = [];
+                this.each(function(node){
+                    var c = node.childNodes;
+                    for(var i=0, j=c.length; i<j;i++){
+                        matched.push(c[i]);
                     }
                 });
                 return this.pushStack(matched);
@@ -533,7 +560,7 @@
                         return $2.toUpperCase(); 
                     });
                     // lowercase the first letter
-                    if(!rUnit.test(v)){
+                    if($.isNumber(v*1) && !rUnit.test(v)){///
                         v += 'px';
                     }
                     Mango.each(this, function (node) {
@@ -549,6 +576,16 @@
                 }
                 return this;
             }
+            ,has: function (selector) {
+                var matched;
+                if(!selector) return this;
+                matched = [];
+                this.each(function(node){
+                    if(node.webkitMatchesSelector(selector))
+                        matched.push(node);
+                });
+                return this.pushStack(matched);
+            }
             ,is: function (p) {
                 if(!p) return false;
                 if(TypeOF.isString(p)){
@@ -562,13 +599,47 @@
                 }
                 return false;
             }
-            ,index: function(){
-                var n = this[0];
-                if(!n) return -1;
-                return indexOf.call(n.parentElement.children, n);
+            ,filter: function (p) {
+                var matched;
+                if(!p) return this;
+                matched = [];
+                if(TypeOF.isString(p)){
+                    return this.has(p);
+                }else if(TypeOF.isObject(p) && p instanceof Mango){
+                    this.each(function(node){
+                        if(node === p[0]){
+                            matched.push(node);
+                        }
+                    });
+                }else if(p.nodeType){
+                    this.each(function(node){
+                        if(node === p){
+                            matched.push(node);
+                        }
+                    });
+                }else if(TypeOF.isFunction(p)){
+                    this.each(function(node, i){
+                        if(p.call(this[0], i)){
+                            matched.push(node);
+                        }
+                    });
+                }
+                return this.pushStack(matched);
+            }
+            ,index: function(selector){
+                var dom, i = -1, n = this[0];
+                if(!n) return i;
+                if(!selector) return indexOf.call(n.parentElement.children, n);
+                dom = (selector instanceof Mango) ? selector[0] : selector;
+                this.each(function(node, _i){
+                    if(node == dom){
+                        i = _i;
+                    }
+                });
+                return i;
             }
             // The splice which make mango to pretend to array object
-            ,splice: Array.prototype.splice
+            ,splice: splice
         });
         // extend addClass,removeClass,toggleClass,hasClass
         +function(){
@@ -674,7 +745,7 @@
             }
         });
         
-        // extend next prev
+        // extend next, prev, nextAll, prevAll, nextUntil, prevUntil
         ['next','prev'].forEach(function(v){
             Mango.prototype[v] = function(selector){
                 var results = [];
@@ -690,7 +761,7 @@
                     }
                 });
                 return this.pushStack(results);
-            }
+            };
             Mango.prototype[v + 'All'] = function (selector) {
                 var results = [];
                 this.each(function (node) {
@@ -704,7 +775,24 @@
                     }
                 });
                 return this.pushStack(results);
-            }
+            };
+            Mango.prototype[v + 'Until'] = function(selector){
+                var results = [];
+                this.each(function (node) {
+                    while(node = Mango[v](node)){
+                        if(selector){
+                            if($(node).is(selector)){
+                                break;
+                            }else{
+                                results.push(node);
+                            }
+                        }else{
+                            results.push(node);
+                        }
+                    }
+                });
+                return this.pushStack(results);
+            };
         });
         // extend width,height,innerWidth, outerWidth, innerHeight, outerHeight
         ['Width', 'Height'].forEach(function(v) {
@@ -911,9 +999,7 @@
                     oEvent._privateEvent = _privateEvent;
                     if (eventType == 'HTMLEvents'){
                         oEvent.initEvent(eventName, options.bubbles, options.cancelable);
-                    }
-                    else
-                    {
+                    }else{
                         oEvent.initMouseEvent(eventName, options.bubbles, options.cancelable, document.defaultView,
                         options.button, options.pointerX, options.pointerY, options.pointerX, options.pointerY,
                         options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, element);
