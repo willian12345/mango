@@ -276,7 +276,7 @@
                 Mango.each(this, function(node){
                     var status = node._mangodisplaystatus;
                     status = (status!==undefined) ? status : 'block';
-                    var d = node.style.display;
+                    var d = window.getComputedStyle(node)['display'];
                     if(d === 'none'){
                         node.style.display = status;
                     }
@@ -285,7 +285,7 @@
             }
             ,hide: function () {
                 Mango.each(this, function(node){
-                    var d = node.style.display;
+                    var d = window.getComputedStyle(node)['display'];
                     node._mangodisplaystatus = d;
                     if(d !== 'none'){
                         node.style.display = 'none';
