@@ -8,6 +8,7 @@
 <p>因为webkit，现在越来越多的公司产品是用native程序包一个webkit内核用html5 来实现UI交互界面，而交互界面javascript又扮演着至关重要的角色。
 Jquery几乎成了大多数公司选择的javascript库，如果你作为一个jser连jquery都不会用，那你就别混了，亲。
 </p>
+<p>但是jquery并不是专门针对webkit的</p>
 
 <h2><a name="-1" class="anchor" href="#-1"><span class="mini-icon mini-icon-link"></span></a>jquery的包袱</h2>
 <p>jquery的特点就是write less do more并兼容各型浏览器，这是伟大的创举，同时也是其包袱，各种兼容浏览器的代码，各种为了write less而发明的选择器，方便我们程序人员的同时它却是自己的包袱，这也至使其付出性能代价。</p>
