@@ -1,7 +1,8 @@
-/*!
+/*
  * mango JavaScript Library v1.0
  * just for webkit
  * author: willian.xiaodong
+ * email: willian12345@126.com
  * Date: 2013-06-15
  * github: https://github.com/willian12345/mango
  */
