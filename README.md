@@ -138,7 +138,7 @@ Jquery几乎成了大多数公司选择的javascript库，如果你作为一个j
 <p>#ajax模块完善</p>
 <p>#更多的静态方法增加</p>
 <p>#更多的jquery api</p>
-<p>#增加Deferreds模块</p>
+<p>#完善Deferreds、Callbacks、Broadcast模块</p>
 
 <hr />
 

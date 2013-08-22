@@ -204,7 +204,7 @@
         }
     })();
     
-// merge into mango
+    // merge into mango
     _extend(mango, TypeOF);
     mango.extend = _extend;
     // Assign mango to window and pretend to jQuery
@@ -212,7 +212,14 @@
     // Expose plugin interface
     window.$.fn = Mango.prototype;
     $.each = Mango.each;
-    
+
+    // uuid from jq.mobi
+    $.uuid = function () {
+        var S4 = function () {
+            return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+        }
+        return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+    };
 
     /**
      * Dom module

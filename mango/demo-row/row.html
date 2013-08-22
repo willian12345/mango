@@ -44,7 +44,31 @@
             <p>helloworld</p>
         </div>
         <script type="text/javascript" src="../mango.js"></script>
+        <script type="text/javascript" src="../deferred.js"></script>
         <script type="text/javascript">
+        var cbs = $.Callbacks();
+        var test = function(m){
+            console.log(m,2);
+        }
+        cbs.add(test);
+        cbs.add(function(m){
+            console.log(m,1);
+        });
+        cbs.fire('hi i am willian');
+        cbs.remove(test);
+        cbs.fire({a:'fuckyou'});
+        var cbs2 = $.Callbacks();
+
+        cbs2.add(function(m){
+            console.log(m,11);
+        });
+        var c2id = cbs2.add(function(m){
+            console.log(m,22);
+        });
+        cbs2.remove(c2id);
+        cbs2.fire('hi vivian, i love you!');
+        
+
         // console.time('append function');
         // for(var i=0; i<800; i++){
         //     var cur = $('#panel').find('li').eq(0);
