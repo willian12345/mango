@@ -726,14 +726,6 @@
             $('.deep').attr({abc:1, def:2});
             // console.log($('.deep').data('abc'),$('.deep').data('def') )
             console.timeEnd('test');
-            Arbiter.subscribe('create', function (p) {
-                console.log(p)
-            });
-
-            setTimeout(function () {
-                Arbiter.publish('create', {a:1});
-            }, 3000);
-            
         });
        
         </script>

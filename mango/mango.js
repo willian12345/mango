@@ -19,6 +19,7 @@
     ,rUnit = /em|px|%/
     ,indexOf = Array.prototype.indexOf
     ,splice = Array.prototype.splice
+    ,slice = Array.prototype.slice;
     ;
     TypeOF = (function(){
         // create functions which is object's type check
@@ -880,10 +881,10 @@
                         };
                     }
 
-                    window.Events = Events;///
+                    // window.Events = Events;///
 
-                    var handle = function (e) {
-                        var arr, tagName, className, _el, _selector, currentTarget;
+                    var handle = function () {
+                        var e, arr, tagName, className, _el, _selector, currentTarget, e = arguments[0];
                         _el = e.srcElement;
                         // check event namespace
                         if(e._privateEvent && e._privateEvent != eventName){
@@ -893,10 +894,10 @@
                         if(selector){
                             //!!(container.compareDocumentPosition(maybe) & 16)
                             if(_el.webkitMatchesSelector(selector)){ // check delegate element
-                                _cb.call(_el, e);
+                                _cb.apply(_el, slice.call(arguments, 0));
                             }
                         }else{
-                            _cb.call(el, e);
+                            _cb.apply(el, slice.call(arguments, 0));
                         }
                     }
                     // Add eventListener without event namespace
@@ -942,17 +943,16 @@
                 }
                 return this;
             }
-            ,trigger: function (eventName) {
-                /// todo receive eventObject
+            ,trigger: function (eventType, extraParam) {
                 var privateEvent = null, eventNamespace;
-                if(!eventName) return this;
+                if(!eventType) return this;
 
-                eventNamespace = eventName.split('/');
+                eventNamespace = eventType.split('/');
                 if(eventNamespace.length > 1){
-                    privateEvent = eventName;
+                    privateEvent = eventType;
                 }
                 Mango.each(this, function(el) {
-                    EventTrigger.trigger(el, eventNamespace[0], privateEvent);
+                    EventTrigger.trigger(el, eventNamespace[0], privateEvent, extraParam);
                 });
                 return this;
             }
@@ -981,21 +981,21 @@
         });
         // w3c original event model
         EventTrigger = {
-            trigger: function (element, eventName, _privateEvent){
+            trigger: function (element, eventName, _privateEvent, extraParam){
                 var options = _extend(EventTrigger.defaultOptions, arguments[2] || {});
                 var oEvent, eventType = null;
                 var eventId;
-
                 for (var name in EventTrigger.eventMatchers){
                     if (EventTrigger.eventMatchers[name].test(eventName)) { eventType = name; break; }
                 }
                 if (!eventType){
                     // custom event bubbling
                     mango(element).parents().addBack().each(function(){
-                        var _id = this['_mangodomid'];
+                        var _id = this['_mangodomid'], d = [{srcElement: element}];
+                        if(mango.isArray(extraParam)) d = d.concat(extraParam);
                         if(_id !== undefined){
                             Events[_id][eventName].handles.forEach(function(eventCb){
-                                eventCb.call(this, {srcElement: element});
+                                eventCb.apply(this, d);
                             }.bind(this));
                         }
                     });
@@ -1039,6 +1039,36 @@
      * Ajax module
      */
     ;+function(){
+        var _get = function(url, data, callback, config){
+            var head = document.getElementsByTagName("head")[0];
+            var script = document.createElement("script");
+            var uniqueName;
+            if (config.scriptCharset) script.charset = config.scriptCharset;
+            if(!callback) callback = data;
+            if(config.type === 'JSONP'){
+                uniqueName = 'jsonp' + Date.now() + Math.ceil(Math.random() * 10000);
+                if(url) url = url.replace(/=\?/g, ('='+uniqueName));
+                if($.isObject(data)) url += '&' + $.param(data);
+                window[uniqueName] = callback;
+            }
+            script.src = url;
+            script.async = true;
+            mango.isFunction(callback) ? callback : function(){};
+            
+
+            // Handle Script loading
+            script.onload = function(){
+                if(config.type==='JSONP'){
+                    window[uniqueName] = undefined;
+                    try{
+                        delete window[uniqueName];
+                    }catch(e){}
+                }
+                head.removeChild( script );
+            };
+
+            head.appendChild(script);
+        };
         mango.param = function( a ) {
             var s = [ ];
             function add( key, value ){
@@ -1068,29 +1098,36 @@
             return s.join("&").replace(/%20/g, "+");
         };
         mango.ajax = function (opts) {
-            var url = opts.url;
-            var type = (opts.type || 'GET').toUpperCase();
-            var sync = opts.sync || 'true';
-            var data = opts.data;
-            var sendData = null;
-            var request = new XMLHttpRequest();
-            var success = opts.success;
-
+            var url = opts.url
+            ,type = (opts.type || 'GET').toUpperCase()
+            ,sync = opts.sync || 'true'
+            ,data = opts.data
+            ,sendData = null
+            ,request = new XMLHttpRequest()
+            ,success = opts.success
+            ,beforeSend = opts.beforeSend
+            ,complete = opts.complete
+            ,error = opts.error;
             request.onreadystatechange = function() {
                 // Is send success or get the page success
-                if (request.readyState==4 && request.status==200) {
-                    if(/json/g.test(request.getResponseHeader("Content-Type"))){//json
-                        if(mango.isFunction(success)){
-                            success(eval('('+request.responseText+')'));
+                if (request.readyState==4) {
+                    if(request.status==200){
+                        if(/json/g.test(request.getResponseHeader("Content-Type"))){//json
+                            if(mango.isFunction(success)){
+                                mango.isFunction(success) && mango.success(eval('('+request.responseText+')'));
+                            }
+                        }else{//html,text
+                            mango.isFunction(success) && success(request.responseText);
                         }
-                    }else{//html,text
-                        success(request.responseText);
+                    }else{// some error occurence (status is: 202、400、404、500)
+                        mango.isFunction(error) && error(request);
                     }
-                } 
+                    mango.isFunction(complete) && complete(request);
+                }
             }
             if(data !== undefined){
                 if(type === 'GET'){
-                    url += '?' + $.param(data);
+                    url += (match(/\?/) ? "&" : "?") + $.param(data);
                 }
             }
             request.open(type, url, sync);
@@ -1100,29 +1137,9 @@
             }
             request.send(sendData);
         };
-        mango.getJSON = function (url, data, callback) {
-            var head = document.getElementsByTagName("head")[0];
-            var script = document.createElement("script");
-            var uniqueName = 'jsonp' + Date.now() + Math.ceil(Math.random() * 10000);
-            if(!callback){
-                callback = data;
-            }
-            window[uniqueName] = callback;
-            if(url){
-                url = url.replace(/=\?/g, ('='+uniqueName));
-            }
-            if($.isObject(data)){
-                url += '&';
-                url += $.param(data);
-            }
-            script.src = url;
-            script.async = true;
-            // Handle Script loading
-            script.onload = function(){
-                head.removeChild( script );
-            };
 
-            head.appendChild(script);
+        mango.getJSON = function (url, data, callback) {
+            _get(url, data, callback,{type:'JSONP'});
         };
     }();
 }(window);
