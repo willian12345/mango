@@ -1107,7 +1107,11 @@
             ,success = opts.success
             ,beforeSend = opts.beforeSend
             ,complete = opts.complete
-            ,error = opts.error;
+            ,error = opts.error
+            ,params = $.param(data);
+            request.onerror = function() {
+                ///
+            };
             request.onreadystatechange = function() {
                 // Is send success or get the page success
                 if (request.readyState==4) {
@@ -1124,22 +1128,33 @@
                     }
                     mango.isFunction(complete) && complete(request);
                 }
-            }
+            };
             if(data !== undefined){
                 if(type === 'GET'){
-                    url += (match(/\?/) ? "&" : "?") + $.param(data);
+                    url += (match(/\?/) ? "&" : "?") + params;
                 }
             }
             request.open(type, url, sync);
             if(type === 'POST'){
                 request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-                sendData = $.param(data) || null;
+                request.setRequestHeader('Content-Length', params.length);
+                sendData = params || null;
             }
+            mango.isFunction(beforeSend) && beforeSend();
             request.send(sendData);
         };
 
         mango.getJSON = function (url, data, callback) {
             _get(url, data, callback,{type:'JSONP'});
+        };
+        /// The faster request of get which send some data to server
+        mango.beacon = function(url, params, callback, error){
+            var beacon = new Image();
+            beacon.src = url + '?' + $.param(params);
+            beacon.onload = function () {
+                callback();
+            };
+            if(mango.isFunction(error)) beacon.onerror = function () { error();}
         };
     }();
 }(window);
