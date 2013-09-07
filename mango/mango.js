@@ -221,6 +221,12 @@
         }
         return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
     };
+    // trim, trimLeft, trimRight
+    ['trim','trimLeft', 'trimRight'].forEach(function(v){
+        $[v] = function (str) {
+            return str[v]();
+        };
+    });
 
     /**
      * Dom module
@@ -539,10 +545,23 @@
                 return this.pushStack(matched);
             }
             ,offset: function () {
-                if(!this[0]){
-                    return {left:0, top:0};
+                var dom = this[0] ,offsetParent;
+                if(!dom){
+                    return null;
                 }
-                return {left:this[0].offsetLeft, top:this[0].offsetTop};
+                var x = dom.getBoundingClientRect().left + document.documentElement.scrollLeft;
+                var y = dom.getBoundingClientRect().top + document.documentElement.scrollTop;
+                return {left: x, top: y};
+            }
+            ,position: function(){
+                var borderWidth,borderHeight,s, dom = this[0];
+                if(!dom){
+                    return null;
+                }
+                s = window.getComputedStyle(dom.offsetParent);
+                borderWidth = parseInt(s['border-left-width'], 10);
+                borderHeight = parseInt(s['border-top-width'], 10);
+                return {left:parseInt(dom.offsetLeft,10) + borderWidth, top: parseInt(dom.offsetTop,10) + borderHeight};
             }
             ,css: function (p, v) {
                 var s, i, cssBat;
