@@ -1058,6 +1058,17 @@
      * Ajax module
      */
     ;+function(){
+        var empty = function () {};
+        var ajaxSettings = {
+            type: 'GET',
+            beforeSend: empty,
+            success: empty,
+            error: empty,
+            complete: empty,
+            context: undefined,
+            timeout: 0,
+            crossDomain:false
+        };
         var _get = function(url, data, callback, config){
             var head = document.getElementsByTagName("head")[0];
             var script = document.createElement("script");
@@ -1117,35 +1128,88 @@
             return s.join("&").replace(/%20/g, "+");
         };
         mango.ajax = function (opts) {
+            var opts = opts || {};
+            for (var key in ajaxSettings) {
+                if (!opts[key])
+                    opts[key] = ajaxSettings[key];
+            }
             var url = opts.url
-            ,type = (opts.type || 'GET').toUpperCase()
+            ,type = (opts.type).toUpperCase()
             ,sync = opts.sync || 'true'
             ,data = opts.data
+            ,dataType
             ,sendData = null
-            ,request = new XMLHttpRequest()
+            ,xhr = new XMLHttpRequest()
             ,success = opts.success
             ,beforeSend = opts.beforeSend
             ,complete = opts.complete
             ,error = opts.error
+            ,isError = false
+            ,context = opts.context
+            ,abortTimeout
             ,params = $.param(data);
-            request.onerror = function() {
+            if (!opts.contentType)
+                opts.contentType = "application/x-www-form-urlencoded";
+
+            if (!opts.dataType)
+                opts.dataType = "text/html";
+            else {
+                switch (opts.dataType) {
+                    case "script":
+                        opts.dataType = 'text/javascript, application/javascript';
+                        break;
+                    case "json":
+                        opts.dataType = 'application/json';
+                        break;
+                    case "xml":
+                        opts.dataType = 'application/xml, text/xml';
+                        break;
+                    case "html":
+                        opts.dataType = 'text/html';
+                        break;
+                    case "text":
+                        opts.dataType = 'text/plain';
+                        break;
+                    default:
+                        opts.dataType = "text/html";
+                        break;
+                    case "jsonp":
+                        _get(opts.url, data, success,{type:'JSONP'});
+                        break;
+                }
+            }
+            xhr.onerror = function() {
                 ///
             };
-            request.onreadystatechange = function() {
+            xhr.onreadystatechange = function() {
+                var mime = opts.dataType, resp;
                 // Is send success or get the page success
-                if (request.readyState==4) {
-                    if(request.status==200){
-                        if(/json/g.test(request.getResponseHeader("Content-Type"))){//json
-                            if(mango.isFunction(success)){
-                                mango.isFunction(success) && mango.success(eval('('+request.responseText+')'));
+                if (xhr.readyState == 4) {
+                    clearTimeout(abortTimeout);
+                    if(xhr.status == 200){
+                        // /json/g.test(xhr.getResponseHeader("Content-Type"))
+                        // mime is json and the responseText is not empty
+                        if(mime === 'application/json' && !(/^\s*$/.test(xhr.responseText))){
+                            // mango.isFunction(success) && mango.success(eval('('+xhr.responseText+')'));
+                            try{
+                                resp = JSON.parse(xhr.responseText);
+                            }catch(e){
+                                isError = e;
                             }
+                            
                         }else{//html,text
-                            mango.isFunction(success) && success(request.responseText);
+                            resp = xhr.responseText;
+                        }
+                        if (isError) {
+                            error.call(context, xhr, 'error');    
+                        }else{
+                            success.call(context, resp, 'success', xhr);    
                         }
                     }else{// some error occurence (status is: 202、400、404、500)
-                        mango.isFunction(error) && error(request);
+                        isError = true;
+                        error.call(context, xhr, 'error');
                     }
-                    mango.isFunction(complete) && complete(request);
+                    complete.call(context, xhr, isError?'error':'success');
                 }
             };
             if(data !== undefined){
@@ -1153,14 +1217,26 @@
                     url += (match(/\?/) ? "&" : "?") + params;
                 }
             }
-            request.open(type, url, sync);
+            xhr.open(type, url, sync);
             if(type === 'POST'){
-                request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-                request.setRequestHeader('Content-Length', params.length);
+                xhr.setRequestHeader('Content-type', opts.contentType);
+                xhr.setRequestHeader('Content-Length', params.length);
                 sendData = params || null;
             }
-            mango.isFunction(beforeSend) && beforeSend();
-            request.send(sendData);
+            if(mango.isFunction(beforeSend)){// stop xhr request when beforeSend return false 
+                if(beforeSend.call(context, xhr, opts) === false){
+                    xhr.abort();
+                    return false;
+                }
+            }
+            if (opts.timeout > 0){
+                abortTimeout = setTimeout(function() {
+                    xhr.onreadystatechange = empty;
+                    xhr.abort();
+                    error.call(context, xhr, 'timeout');
+                }, opts.timeout);
+            }
+            xhr.send(sendData);
         };
 
         mango.getJSON = function (url, data, callback) {
