@@ -1083,9 +1083,8 @@
             }
             script.src = url;
             script.async = true;
-            mango.isFunction(callback) ? callback : function(){};
+            mango.isFunction(callback) ? callback() : empty();
             
-
             // Handle Script loading
             script.onload = function(){
                 if(config.type==='JSONP'){
@@ -1179,7 +1178,7 @@
                 }
             }
             xhr.onerror = function() {
-                ///
+                error.call(context, xhr, 'error');
             };
             xhr.onreadystatechange = function() {
                 var mime = opts.dataType, resp;
@@ -1201,7 +1200,7 @@
                             resp = xhr.responseText;
                         }
                         if (isError) {
-                            error.call(context, xhr, 'error');    
+                            error.call(context, xhr, 'error');
                         }else{
                             success.call(context, resp, 'success', xhr);    
                         }
