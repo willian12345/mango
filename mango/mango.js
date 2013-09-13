@@ -1070,9 +1070,9 @@
             crossDomain:false
         };
         var _get = function(url, data, callback, config){
+            var uniqueName, abortTimeout = '';
             var head = document.getElementsByTagName("head")[0];
             var script = document.createElement("script");
-            var uniqueName;
             if (config.scriptCharset) script.charset = config.scriptCharset;
             if(!callback) callback = data;
             if(config.type === 'JSONP'){
@@ -1083,20 +1083,30 @@
             }
             script.src = url;
             script.async = true;
-            mango.isFunction(callback) ? callback() : empty();
-            
+        
             // Handle Script loading
             script.onload = function(){
                 if(config.type==='JSONP'){
+                    clearTimeout(abortTimeout);
                     window[uniqueName] = undefined;
                     try{
                         delete window[uniqueName];
                     }catch(e){}
                 }
-                head.removeChild( script );
+                head.removeChild(script);
             };
-
+            if(config.error){
+               script.onerror=function(){
+                  clearTimeout(abortTimeout);
+                  config.error.call(context, "", 'error');
+               }
+            }
             head.appendChild(script);
+            if (config.timeout > 0) {
+                abortTimeout = setTimeout(function() {
+                    mango.isFunction(config.error) && config.error.call(this, "", 'timeout');
+                }, config.timeout);
+            };
         };
         mango.param = function( a ) {
             var s = [ ];
@@ -1150,9 +1160,9 @@
             if (!opts.contentType)
                 opts.contentType = "application/x-www-form-urlencoded";
 
-            if (!opts.dataType)
+            if (!opts.dataType){
                 opts.dataType = "text/html";
-            else {
+            } else {
                 switch (opts.dataType) {
                     case "script":
                         opts.dataType = 'text/javascript, application/javascript';
@@ -1173,7 +1183,7 @@
                         opts.dataType = "text/html";
                         break;
                     case "jsonp":
-                        _get(opts.url, data, success,{type:'JSONP'});
+                        return _get(opts.url, data, success,{type:'JSONP'});
                         break;
                 }
             }
