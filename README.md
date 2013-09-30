@@ -27,6 +27,20 @@ Jquery几乎成了大多数公司选择的javascript库，如果你作为一个j
 <p>经过测试mango的api性能</p>
 <p>全面超越jquery1.3、jquery1.7、jquery2.0、zepto、jq.mobi</p>
 
+
+
+<h2><a name="-1" class="anchor" href="#-1"><span class="mini-icon mini-icon-link"></span></a>使用到的H5新DOM API </h2>
+<ul>
+	<li>querySelector</li>
+	<li>querySelectorAll</li>
+	<li>previousElementSibling</li>
+	<li>nextElementSibling</li>
+	<li>webkitMatchesSelector</li>
+	<li>dataset</li>
+	<li>classList</li>
+	<li>insertAdjacentHTML</li>
+</ul>
+
 <h2><a name="-1" class="anchor" href="#-1"><span class="mini-icon mini-icon-link"></span></a>自行选用mango的模块 </h2>
 <p>根据web app的简繁程度可以自由选择mango所需要的模块来选择mango文件，达到最小化mango文件</p>
 
