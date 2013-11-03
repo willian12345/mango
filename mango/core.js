@@ -651,7 +651,7 @@
         });
         // extend addClass,removeClass,toggleClass,hasClass
         +function(){
-            var classList = {addClass: 'add', removeClass: 'remove', toggleClass: 'toggle', hasClass: 'contains'};
+            var classList = {addClass: 'add', removeClass: 'remove', toggleClass: 'toggle'};
             for(var k in classList){
                 +function(_k){
                     Mango.prototype[_k] = function (className) {
@@ -661,6 +661,13 @@
                         return this;
                     }
                 }(k);
+            }
+            Mango.prototype.hasClass = function (className){///
+                var ret = false;
+                Mango.each(this, function (node) {
+                    ret = node && node.classList['contains'](className);
+                });
+                return ret;
             }
         }();
         // extend before,after
