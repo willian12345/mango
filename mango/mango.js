@@ -276,7 +276,7 @@
             }
             ,html: function (str) {
                 var r;
-                if(str){
+                if(str !== undefined){
                     Mango.each(this, function (node) {
                         node.innerHTML = str;
                     });
@@ -299,7 +299,7 @@
             ,show: function () {
                 Mango.each(this, function(node){
                     var status = node._mangodisplaystatus;
-                    status = (status!==undefined) ? status : 'block';
+                    status = (status !== undefined) ? status : 'block';
                     var d = window.getComputedStyle(node)['display'];
                     if(d === 'none'){
                         node.style.display = status;
@@ -309,8 +309,12 @@
             }
             ,hide: function () {
                 Mango.each(this, function(node){
-                    var d = window.getComputedStyle(node)['display'];
-                    node._mangodisplaystatus = d;
+                    var d;
+                    if(node._mangodisplaystatus === undefined){
+                        d = node._mangodisplaystatus = window.getComputedStyle(node)['display'];
+                    }else{
+                        d = node._mangodisplaystatus;
+                    }
                     if(d !== 'none'){
                         node.style.display = 'none';
                     }
@@ -1550,4 +1554,17 @@
             return dtd.promise();
         };
     }();
+    if(typeof define == 'function' && typeof define.amd == 'object' && define.amd) {
+        // define as an anonymous module
+        define(function() {
+          return mango;
+        });
+        // check for `exports` after `define` in case a build optimizer adds an `exports` object
+      }
+      else if(typeof module === 'object' && typeof module.exports === 'object') {
+        module.exports = mango;
+      }
+      else {
+        window.mango = mango;
+      }
 }(window);
