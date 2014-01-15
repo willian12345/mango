@@ -1,6 +1,6 @@
 /*
- * Deferred
- * Include module: Callbacks、Broadcast(pub/sub pattern)
+ * Decoupling module
+ * Include module: Deferred、Callbacks、Broadcast(pub/sub pattern)
  * Attention: it can independent use in your project 
  * author: willian.xiaodong
  * email: willian12345@126.com
@@ -171,7 +171,6 @@
 
 	/* Callbacks module */
 	var _Callback = function (config) {
-		/// config: "stopOnFalse"、"unique"、"memory"、"once"
         this.bc = $.Broadcast.create();
         this.msg = 'callbacks';
     };
@@ -193,25 +192,89 @@
     })();
 
     /* Deferred module */
-    var _Deferred = function(){};
-    _Deferred.prototype = {
-    	always: function () {}
-    	,done: function () {}
-    	,fail: function (){}
-    	,notify: function(){}
-    	,notifyWith: function(){}
-    	,progress: function(){}
-    	,promise: function(){}
-    	,reject: function(){}
-    	,rejectWith: function(){}
-    	,resolve: function(){}
-    	,resolveWith: function(){}
-    	,state: function(){}
-    	,then: function(){}
+    var _Deferred = function(){
+    	var deferred
+    	,sucs = new _Callback()
+    	,fails = new _Callback()
+    	,always = new _Callback()
+    	,state = "pending"
+    	,promise = {
+    		always: function (f) {
+    			always.add(f);
+    			return this;
+    		}
+	    	,done: function(f){
+	    		sucs.add(f);
+	    		return this;
+	    	}
+	    	,fail: function (f){
+	    		fails.add(f);
+	    		return this;
+	    	}
+	    	,state: function(){
+	    		return state;
+	    	}
+	    	,then: function(s, f){
+	    		sucs.add(s);
+	    		fails.add(f);
+	    		return this;
+	    	}	
+	    	,promise: function( obj ) {
+				if ( obj == null ) {
+					obj = promise;
+				} else {
+					for ( var key in promise ) {
+						obj[ key ] = promise[ key ];
+					}
+				}
+				return obj;
+			}
+    	};
+    	deferred = promise.promise({});
+    	deferred.resolve = function(args){
+    		sucs.fire(args);
+    		always.fire(args);
+    	};
+    	deferred.reject = function(args){
+    		fails.fire(args);
+    		always.fire(args);
+    	};
+    	return deferred.then(function(){
+    		state = 'resolved';
+    	}, function(){
+    		state = 'rejected';
+    	});
     };
     $.Deferred = (function(){
         return function () {
             return new _Deferred();
         }
     })();
+    /* when */
+    $.when = function (){
+    	var args = Array.prototype.slice.call(arguments, 0)
+    	,l = args.length
+    	,count = l
+    	,arg
+    	,dtd = $.Deferred()
+    	,resolveFunc = function () {
+    		--count;
+    		if(!count){
+    			dtd.resolve();
+    		}
+    	};
+    	for (var i = l - 1; i >= 0; i--) {
+    		arg = args[i];
+    		if(arg && arg.promise && (typeof args[i].promise === 'function')){// deferred
+    			args[i].promise().then(resolveFunc, dtd.reject);
+    		}else if(typeof args[i] === 'function'){// function
+    			--count;
+    			args[i]();
+    		}else{// object
+    			--count;
+    		}
+    	};
+
+    	return dtd.promise();
+    };
 }(window);

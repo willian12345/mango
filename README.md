@@ -27,6 +27,20 @@ Jquery几乎成了大多数公司选择的javascript库，如果你作为一个j
 <p>经过测试mango的api性能</p>
 <p>全面超越jquery1.3、jquery1.7、jquery2.0、zepto、jq.mobi</p>
 
+
+
+<h2><a name="-1" class="anchor" href="#-1"><span class="mini-icon mini-icon-link"></span></a>使用到的H5新DOM API </h2>
+<ul>
+	<li>querySelector</li>
+	<li>querySelectorAll</li>
+	<li>previousElementSibling</li>
+	<li>nextElementSibling</li>
+	<li>webkitMatchesSelector</li>
+	<li>dataset</li>
+	<li>classList</li>
+	<li>insertAdjacentHTML</li>
+</ul>
+
 <h2><a name="-1" class="anchor" href="#-1"><span class="mini-icon mini-icon-link"></span></a>自行选用mango的模块 </h2>
 <p>根据web app的简繁程度可以自由选择mango所需要的模块来选择mango文件，达到最小化mango文件</p>
 
@@ -116,6 +130,19 @@ Jquery几乎成了大多数公司选择的javascript库，如果你作为一个j
 
 <hr />
 
+<h3>decoupling 解耦模块</h3>
+<p>解耦模块中包含了: </p>
+<p>Deferred、Callbacks、Broadcast</p>
+
+<p>在很多情况下mango更建议使用Broadcast</p>
+<p>Broadcast是一个强大的订阅发布系统（订阅者设计模式），</p>
+<p>
+	Deferred和Callbacks也是建议在Broadcast基础上的，这点与jquery的Deferred和Callbacks实现方式不一样
+	mango刻意简化了Deferred和Callbacks
+</p>
+
+<hr />
+
 <h2>静态方法</h2>
 <ul>
 	<li>$.extend</li>
@@ -138,7 +165,6 @@ Jquery几乎成了大多数公司选择的javascript库，如果你作为一个j
 <p>#ajax模块完善</p>
 <p>#更多的静态方法增加</p>
 <p>#更多的jquery api</p>
-<p>#完善Deferreds、Callbacks、Broadcast模块</p>
 
 <hr />
 
